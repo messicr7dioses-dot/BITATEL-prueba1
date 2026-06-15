@@ -10,11 +10,10 @@ namespace BITATEL_prueba1.Controllers
         // =======================================================
         private bool EsAdmin()
         {
-            var user = Session["UsuarioActivo"] as Usuario;
-            // Verificamos que la sesión no sea nula y que el usuario sea Admin (Rol 1)
-            return user != null && user.IdRol == 1;
+            // Uso de Pattern Matching: Comprueba si es nulo, lo convierte a la clase Usuario 
+            // y lo guarda en la variable 'user' en una sola línea.
+            return Session["UsuarioActivo"] is Usuario user && user.IdRol == 1;
         }
-
         // =======================================================
         // ADMINISTRACIÓN PRINCIPAL
         // =======================================================

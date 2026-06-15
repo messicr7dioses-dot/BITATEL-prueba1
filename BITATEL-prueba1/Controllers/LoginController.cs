@@ -36,11 +36,14 @@ namespace BITATEL_prueba1.Controllers
                     // Si el reader encuentra una fila, las credenciales son correctas
                     if (reader.Read())
                     {
-                        userLogueado = new Usuario();
-                        userLogueado.IdUsuario = Convert.ToInt64(reader["id_usuario"]);
-                        userLogueado.NombreCompleto = reader["nombre_completo"].ToString();
-                        userLogueado.Username = username;
-                        userLogueado.IdRol = Convert.ToInt64(reader["id_rol"]);
+                        // Inicialización simplificada de objetos
+                        userLogueado = new Usuario
+                        {
+                            IdUsuario = Convert.ToInt64(reader["id_usuario"]),
+                            NombreCompleto = reader["nombre_completo"].ToString(),
+                            Username = username,
+                            IdRol = Convert.ToInt64(reader["id_rol"])
+                        };
                     }
                 }
             }

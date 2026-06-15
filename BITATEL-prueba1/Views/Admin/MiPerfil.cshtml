@@ -1,8 +1,56 @@
-﻿
-@{ ViewBag.Title = "Mi Perfil";
-    Layout = "~/Views/Shared/_LayoutAdmin.cshtml"; }
+﻿@{
+    ViewBag.Title = "Mi Perfil";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
 
-<div style="background:white; padding:20px; border-radius:8px; border:1px solid #ddd;">
-    <h2>Mi Perfil</h2>
-    <p>Esta vista está en construcción y lista para ser programada.</p>
+    // Extraemos el usuario de la sesión actual
+    var usuarioLogueado = Session["UsuarioActivo"] as BITATEL_prueba1.Models.Usuario;
+
+    // Validaciones de seguridad visual
+    string nombre = usuarioLogueado != null ? usuarioLogueado.NombreCompleto : "Usuario Desconocido";
+    string username = usuarioLogueado != null ? usuarioLogueado.Username : "N/A";
+    string rolNombre = (usuarioLogueado != null && usuarioLogueado.IdRol == 1) ? "Administrador del Sistema" : "Operador/Cliente";
+}
+
+<div style="max-width: 800px; margin: 0 auto;">
+    <h2 style="color: #333; margin-bottom: 20px;">Mi Perfil</h2>
+
+    <div style="background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); padding: 30px; display: flex; align-items: center; gap: 30px; margin-bottom: 30px; border-left: 5px solid #d97706;">
+
+        <div style="width: 100px; height: 100px; border-radius: 50%; background-color: #fef3c7; color: #d97706; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; font-weight: bold;">
+            @(string.IsNullOrEmpty(nombre) ? "U" : nombre.Substring(0,1).ToUpper())
+        </div>
+
+        <div>
+            <h3 style="margin: 0 0 10px 0; color: #1f2937; font-size: 1.5rem;">@nombre</h3>
+            <p style="margin: 0 0 5px 0; color: #6b7280; font-size: 1rem;">
+                <strong>Usuario (Login):</strong> @username
+            </p>
+            <p style="margin: 0; color: #6b7280; font-size: 1rem;">
+                <strong>Nivel de Acceso:</strong> <span style="background-color: #dbeafe; color: #1e40af; padding: 3px 10px; border-radius: 12px; font-size: 0.85rem; font-weight: bold;">@rolNombre</span>
+            </p>
+        </div>
+    </div>
+
+    <div style="background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); padding: 30px;">
+        <h4 style="margin-top: 0; color: #333; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">Actualizar Credenciales</h4>
+
+        <form action="#" method="post" style="display: flex; flex-direction: column; gap: 15px;">
+            <div style="display: flex; gap: 20px;">
+                <div style="flex: 1;">
+                    <label style="display: block; margin-bottom: 5px; color: #555; font-weight: 500;">Contraseña Actual</label>
+                    <input type="password" class="form-control" placeholder="••••••••" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box;" disabled />
+                    <small style="color: #888;">Por seguridad, la actualización de contraseñas está inhabilitada en esta demo.</small>
+                </div>
+                <div style="flex: 1;">
+                    <label style="display: block; margin-bottom: 5px; color: #555; font-weight: 500;">Nueva Contraseña</label>
+                    <input type="password" class="form-control" placeholder="Nueva contraseña" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box;" disabled />
+                </div>
+            </div>
+            <div style="margin-top: 10px;">
+                <button type="button" style="background-color: #d97706; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: background 0.3s;">
+                    Guardar Cambios
+                </button>
+            </div>
+        </form>
+    </div>
 </div>

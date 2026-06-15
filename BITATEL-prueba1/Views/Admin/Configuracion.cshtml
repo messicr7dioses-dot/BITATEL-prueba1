@@ -1,8 +1,352 @@
-﻿
-@{ ViewBag.Title = "Configuracion";
-                Layout = "~/Views/Shared/_LayoutAdmin.cshtml"; }
+﻿@{
+    ViewBag.Title = "Configuración del Sistema";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
 
-<div style="background:white; padding:20px; border-radius:8px; border:1px solid #ddd;">
-    <h2>Configuracion</h2>
-    <p>Esta vista está en construcción y lista para ser programada.</p>
+<style>
+    /* Estilos para el switch (interruptor) tipo iOS */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 22px;
+    }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 22px;
+    }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+    input:checked + .slider {
+        background-color: #d97706;
+    }
+
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+
+    /* Estilos generales del formulario */
+    .config-section {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        padding: 25px;
+        margin-bottom: 25px;
+    }
+
+    .config-title {
+        margin-top: 0;
+        color: #333;
+        border-bottom: 2px solid #f0f0f0;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+        font-size: 1.1rem;
+    }
+
+    .config-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #fafafa;
+    }
+
+        .config-row:last-child {
+            border-bottom: none;
+        }
+
+    .config-label strong {
+        color: #444;
+        display: block;
+        margin-bottom: 3px;
+    }
+
+    .config-label span {
+        color: #888;
+        font-size: 0.85rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-family: inherit;
+    }
+
+    .select-wrapper {
+        width: 250px;
+    }
+</style>
+
+<div style="max-width: 900px; margin: 0 auto; padding-bottom: 40px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="color: #333; margin: 0;">Configuración Integral</h2>
+        <button onclick="guardarConfiguracion()" style="background-color: #d97706; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: background 0.3s; display: flex; align-items: center; gap: 8px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+            Guardar Cambios
+        </button>
+    </div>
+
+    <div class="config-section">
+        <h4 class="config-title">Interfaz y Tablero</h4>
+
+        <div class="config-row">
+            <div class="config-label">
+                <strong>Pantalla de Inicio Personalizada</strong>
+                <span>Elige qué módulo se abrirá por defecto al iniciar sesión.</span>
+            </div>
+            <div class="select-wrapper">
+                <select id="cfgInicio" class="form-control">
+                    <optgroup label="Administración">
+                        <option value="Admin/Index">Dashboard Admin (Resumen)</option>
+                        <option value="Admin/RegistrarAlquiler">Registrar Alquiler</option>
+                        <option value="Admin/GestionarStock">Gestionar Stock</option>
+                        <option value="Admin/Usuarios">Gestión de Usuarios</option>
+                    </optgroup>
+                    <optgroup label="Consultas">
+                        <option value="Admin/Ubicaciones">Ver Todas Ubicaciones</option>
+                    </optgroup>
+                    <optgroup label="Logística">
+                        <option value="Admin/Contratos">Contratos</option>
+                        <option value="Admin/Solicitudes">Solicitudes</option>
+                    </optgroup>
+                </select>
+            </div>
+        </div>
+
+        <div class="config-row">
+            <div class="config-label">
+                <strong>Modo Oscuro (Dark Mode)</strong>
+                <span>Cambia la paleta a tonos oscuros para reducir la fatiga visual.</span>
+            </div>
+            <label class="switch"><input type="checkbox" id="cfgDarkMode" onchange="aplicarModoOscuro(this.checked)"><span class="slider"></span></label>
+        </div>
+
+        <div class="config-row">
+            <div class="config-label">
+                <strong>Ocultar menú lateral automáticamente</strong>
+                <span>Maximiza el espacio de trabajo replegando la barra en pantallas pequeñas.</span>
+            </div>
+            <label class="switch"><input type="checkbox" id="cfgColapsarMenu"><span class="slider"></span></label>
+        </div>
+    </div>
+
+    <div class="config-section">
+        <h4 class="config-title">Exportación y Reportes</h4>
+
+        <div class="config-row">
+            <div class="config-label">
+                <strong>Formato de Descarga Predeterminado</strong>
+                <span>Formato que se generará al hacer clic rápido en "Exportar".</span>
+            </div>
+            <div class="select-wrapper">
+                <select id="cfgExportacion" class="form-control">
+                    <option value="xlsx">Excel (.xlsx)</option>
+                    <option value="csv">CSV delimitado</option>
+                    <option value="pdf">Documento PDF</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="config-row">
+            <div class="config-label">
+                <strong>Membrete en Exportaciones</strong>
+                <span>Incluir el logo de BITATEL en la cabecera de los reportes PDF.</span>
+            </div>
+            <label class="switch"><input type="checkbox" id="cfgMembrete" checked><span class="slider"></span></label>
+        </div>
+
+        <div class="config-row">
+            <div class="config-label">
+                <strong>Separador Decimal</strong>
+                <span>Configura el símbolo utilizado para los montos financieros.</span>
+            </div>
+            <div class="select-wrapper">
+                <select id="cfgDecimal" class="form-control">
+                    <option value="punto">Punto (1,000.50)</option>
+                    <option value="coma">Coma (1.000,50)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="config-section">
+        <h4 class="config-title">Seguridad y Privacidad</h4>
+
+        <div class="config-row">
+            <div class="config-label">
+                <strong>Ocultar Métricas Financieras (Modo Privacidad)</strong>
+                <span>Difumina los costos y multas en pantalla para evitar que terceros los vean.</span>
+            </div>
+            <label class="switch"><input type="checkbox" id="cfgPrivacidad" onchange="aplicarPrivacidad(this.checked)"><span class="slider"></span></label>
+        </div>
+
+        <div class="config-row">
+            <div class="config-label">
+                <strong>Confirmación de Acciones Sensibles</strong>
+                <span>Exigir doble confirmación antes de solicitar reemplazos o traslados.</span>
+            </div>
+            <label class="switch"><input type="checkbox" id="cfgDobleConfirmacion" checked><span class="slider"></span></label>
+        </div>
+
+        <div class="config-row">
+            <div class="config-label">
+                <strong>Cierre de Sesión por Inactividad</strong>
+                <span>Tiempo máximo sin actividad antes de cerrar la sesión automáticamente.</span>
+            </div>
+            <div class="select-wrapper">
+                <select id="cfgInactividad" class="form-control">
+                    <option value="5">5 minutos</option>
+                    <option value="15" selected>15 minutos</option>
+                    <option value="30">30 minutos</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="config-row">
+            <div class="config-label">
+                <strong>Historial de Accesos</strong>
+                <span>Revisa la dirección IP y fecha de los últimos inicios de sesión.</span>
+            </div>
+            <button class="btn" style="background:#e5e7eb; color:#374151; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;" onclick="alert('Funcionalidad de auditoría en desarrollo.')">Ver Historial</button>
+        </div>
+    </div>
+
+    <div class="config-section">
+        <h4 class="config-title">Logística, Alertas y Parámetros Operativos</h4>
+
+        <div class="config-row">
+            <div class="config-label">
+                <strong>Alertas de Contratos por Vencer</strong>
+                <span>Recibir notificación 30 días antes de que caduque un alquiler.</span>
+            </div>
+            <label class="switch"><input type="checkbox" id="cfgAlertaVencer" checked><span class="slider"></span></label>
+        </div>
+
+        <div class="config-row">
+            <div class="config-label">
+                <strong>Avisos de Mora Automática</strong>
+                <span>Generar penalidad automáticamente al cruzar la fecha de vencimiento.</span>
+            </div>
+            <label class="switch"><input type="checkbox" id="cfgMoraAutomatica" checked><span class="slider"></span></label>
+        </div>
+
+        <div class="config-row">
+            <div class="config-label">
+                <strong>Nuevas Solicitudes de Clientes</strong>
+                <span>Notificar cuando un cliente presione "Solicitar Reemplazo" o "Nuevo".</span>
+            </div>
+            <label class="switch"><input type="checkbox" id="cfgNuevasSolicitudes" checked><span class="slider"></span></label>
+        </div>
+
+        <div class="config-row" style="align-items: flex-start; flex-direction: column;">
+            <div class="config-label" style="margin-bottom: 10px;">
+                <strong>Días de Gracia para Mora</strong>
+                <span>Días permitidos después del vencimiento antes de aplicar la multa diaria.</span>
+            </div>
+            <input type="number" id="cfgDiasGracia" value="3" min="0" max="30" class="form-control" style="width: 150px;" />
+        </div>
+    </div>
+
 </div>
+
+<script>
+    // 1. Al cargar la página, recuperamos lo que el usuario guardó previamente
+    document.addEventListener("DOMContentLoaded", function () {
+        cargarConfiguracion();
+    });
+
+    // 2. Función para guardar en el navegador
+    function guardarConfiguracion() {
+        const config = {
+            inicio: document.getElementById("cfgInicio").value,
+            darkMode: document.getElementById("cfgDarkMode").checked,
+            colapsarMenu: document.getElementById("cfgColapsarMenu").checked,
+            exportacion: document.getElementById("cfgExportacion").value,
+            membrete: document.getElementById("cfgMembrete").checked,
+            decimal: document.getElementById("cfgDecimal").value,
+            privacidad: document.getElementById("cfgPrivacidad").checked,
+            dobleConfirmacion: document.getElementById("cfgDobleConfirmacion").checked,
+            inactividad: document.getElementById("cfgInactividad").value,
+            alertaVencer: document.getElementById("cfgAlertaVencer").checked,
+            moraAutomatica: document.getElementById("cfgMoraAutomatica").checked,
+            nuevasSolicitudes: document.getElementById("cfgNuevasSolicitudes").checked,
+            diasGracia: document.getElementById("cfgDiasGracia").value
+        };
+
+        // Guardamos como string en localStorage
+        localStorage.setItem("bitatelConfig", JSON.stringify(config));
+
+        alert("¡Configuraciones guardadas exitosamente!");
+    }
+
+    // 3. Función para cargar desde el navegador y setear los botones
+    function cargarConfiguracion() {
+        const data = localStorage.getItem("bitatelConfig");
+        if (data) {
+            const config = JSON.parse(data);
+            document.getElementById("cfgInicio").value = config.inicio || "Admin/Index";
+            document.getElementById("cfgDarkMode").checked = config.darkMode || false;
+            document.getElementById("cfgColapsarMenu").checked = config.colapsarMenu || false;
+            document.getElementById("cfgExportacion").value = config.exportacion || "xlsx";
+            document.getElementById("cfgMembrete").checked = config.membrete !== false;
+            document.getElementById("cfgDecimal").value = config.decimal || "punto";
+            document.getElementById("cfgPrivacidad").checked = config.privacidad || false;
+            document.getElementById("cfgDobleConfirmacion").checked = config.dobleConfirmacion !== false;
+            document.getElementById("cfgInactividad").value = config.inactividad || "15";
+            document.getElementById("cfgAlertaVencer").checked = config.alertaVencer !== false;
+            document.getElementById("cfgMoraAutomatica").checked = config.moraAutomatica !== false;
+            document.getElementById("cfgNuevasSolicitudes").checked = config.nuevasSolicitudes !== false;
+            document.getElementById("cfgDiasGracia").value = config.diasGracia || 3;
+
+            // Aplicamos los efectos visuales inmediatamente
+            aplicarModoOscuro(config.darkMode);
+            aplicarPrivacidad(config.privacidad);
+        }
+    }
+
+    // 4. Lógica Funcional en tiempo real
+    function aplicarModoOscuro(activo) {
+        // Esto añade una clase 'dark-theme' al body para que luego modifiques tu _LayoutAdmin
+        if (activo) {
+            document.body.style.backgroundColor = "#1e293b";
+            document.body.style.color = "#f8fafc";
+        } else {
+            document.body.style.backgroundColor = "#f8f9fa";
+            document.body.style.color = "initial";
+        }
+    }
+
+    function aplicarPrivacidad(activo) {
+        // En tus otras vistas, solo tendrás que poner class="dato-financiero" a los precios
+        if (activo) {
+            console.log("Modo privacidad activado: Los costos se ocultarán.");
+        }
+    }
+</script>
