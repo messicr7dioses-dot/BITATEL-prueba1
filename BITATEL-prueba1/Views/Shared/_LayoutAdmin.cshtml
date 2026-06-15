@@ -25,7 +25,6 @@
             overflow: hidden;
         }
 
-        /* SIDEBAR */
         .sidebar {
             width: 260px;
             background-color: #ffffff;
@@ -60,11 +59,10 @@
 
             .menu-item:hover {
                 background-color: #e9ecef;
-                border-left: 5px solid #d97706; /* Color naranja para diferenciar que es Admin */
+                border-left: 5px solid #d97706;
                 color: #000;
             }
 
-        /* MAIN */
         .main-container {
             flex: 1;
             display: flex;
@@ -113,7 +111,6 @@
                 color: #d97706;
             }
 
-        /* DROPDOWN */
         .dropdown {
             position: relative;
             display: inline-block;
@@ -189,8 +186,6 @@
         <div style="padding: 10px 20px; font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-top: 10px;">Logística</div>
         <a href="@Url.Action("Contratos", "Admin")" class="menu-item">Contratos</a>
         <a href="@Url.Action("Solicitudes", "Admin")" class="menu-item">Solicitudes</a>
-
-        
     </div>
 
     <div class="main-container">
@@ -203,7 +198,7 @@
                 <div class="dropdown">
                     <button onclick="toggleUserMenu()" class="topbar-btn"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></button>
                     <div id="userDropdown" class="dropdown-content">
-                        <a href="@Url.Action("Configuracion", "Admin")"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a..."></path></svg>Configuración</a>
+                        <a href="@Url.Action("Configuracion", "Admin")"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>Configuración</a>
                         <a href="@Url.Action("MiPerfil", "Admin")"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Mi Perfil</a>
 
                         <a href="@Url.Action("Salir", "Login")" onclick="return confirm('¿Seguro que deseas salir?');"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline></svg>Cerrar Sesión</a>

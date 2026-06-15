@@ -181,9 +181,15 @@
     <Content Include="Views\Cliente\Contratos.cshtml" />
     <Content Include="Views\Cliente\Solicitudes.cshtml" />
     <Content Include="Views\Cliente\Ubicaciones.cshtml" />
-    <Content Include="Views\Admin\Indexadmin.cshtml" />
     <Content Include="Views\Shared\_LayoutAdmin.cshtml" />
     <Content Include="Views\Admin\RegistrarAlquiler.cshtml" />
+    <Content Include="Views\Admin\GestionarStock.cshtml" />
+    <Content Include="Views\Admin\Usuarios.cshtml" />
+    <Content Include="Views\Admin\Solicitudes.cshtml" />
+    <Content Include="Views\Admin\Contratos.cshtml" />
+    <Content Include="Views\Admin\Ubicaciones.cshtml" />
+    <Content Include="Views\Admin\Configuracion.cshtml" />
+    <Content Include="Views\Admin\MiPerfil.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
