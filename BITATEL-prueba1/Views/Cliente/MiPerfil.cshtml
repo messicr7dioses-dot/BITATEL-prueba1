@@ -1,0 +1,131 @@
+﻿@{
+    ViewBag.Title = "Mi Perfil";
+    Layout = "~/Views/Shared/_LayoutCliente.cshtml";
+
+    // 1. Extraemos y validamos el usuario de forma segura
+    var user = Session["UsuarioActivo"] as BITATEL_prueba1.Models.Usuario;
+    string nombre = user != null ? user.NombreCompleto : "Usuario";
+    string inicial = !string.IsNullOrEmpty(nombre) ? nombre.Substring(0, 1) : "U";
+    string username = user != null ? user.Username : "N/A";
+}
+
+<style>
+    .profile-card {
+        background: white;
+        border-radius: 8px;
+        padding: 40px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        max-width: 600px;
+        margin: 0 auto;
+        text-align: center;
+        border: 1px solid #e5e7eb;
+    }
+
+    .avatar-circle {
+        width: 100px;
+        height: 100px;
+        background-color: #0056b3;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        margin: 0 auto 20px auto;
+    }
+
+    .info-group {
+        margin-bottom: 20px;
+        text-align: left;
+        border-bottom: 1px solid #f3f4f6;
+        padding-bottom: 15px;
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .info-icon svg {
+        width: 24px;
+        height: 24px;
+        stroke: #6b7280;
+        fill: none;
+        stroke-width: 1;
+    }
+
+    .info-label {
+        font-size: 0.85rem;
+        color: #6b7280;
+        text-transform: uppercase;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .info-value {
+        font-size: 1.05rem;
+        color: #1f2937;
+        font-weight: 500;
+    }
+
+    .badge-role {
+        background-color: #e0e7ff;
+        color: #3730a3;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: bold;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 30px;
+    }
+
+        .badge-role svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+</style>
+
+<h2 style="color: #1f2937; margin-top: 0; margin-bottom: 30px; text-align: center;">Información de la Cuenta</h2>
+
+<div class="profile-card">
+    <div class="avatar-circle">
+        @inicial
+    </div>
+
+    <h3 style="margin: 0; font-size: 1.5rem; color: #111827;">@nombre</h3>
+    <p style="color: #6b7280; margin-top: 5px; margin-bottom: 20px;">@username</p>
+
+    <div class="badge-role">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+        Rol: Cliente (Autogestión)
+    </div>
+
+    <div class="info-group">
+        <div class="info-icon">
+            <svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><path d="M9 22v-4h6v4"></path></svg>
+        </div>
+        <div class="info-content">
+            <div class="info-label">Empresa / Cliente Asignado</div>
+            <div class="info-value">Universidad Privada del Norte S.A.C.</div>
+        </div>
+    </div>
+
+    <div class="info-group">
+        <div class="info-icon">
+            <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+        </div>
+        <div class="info-content">
+            <div class="info-label">Sedes Habilitadas para Traslados</div>
+            <div class="info-value">
+                <ul style="margin: 5px 0; padding-left: 20px; color: #374151;">
+                    <li>Campus Los Olivos - UPN</li>
+                    <li>Campus Chorrillos - UPN</li>
+                    <li>Campus Breña - UPN</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

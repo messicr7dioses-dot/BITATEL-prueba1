@@ -1,0 +1,114 @@
+﻿@model IEnumerable<BITATEL_prueba1.Models.UbicacionViewModel>
+
+@{
+    ViewBag.Title = "Ubicaciones";
+    Layout = "~/Views/Shared/_LayoutCliente.cshtml";
+}
+
+<style>
+    /* Usamos los mismos estilos que en MisActivos para consistencia */
+    .page-title {
+        margin-top: 0;
+        color: #1f2937;
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin-bottom: 25px;
+    }
+
+    .toolbar {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 20px;
+    }
+
+    .btn-new {
+        background-color: #10b981;
+        color: white;
+        padding: 10px 16px;
+        border-radius: 6px;
+        border: none;
+        font-weight: 500;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+        .btn-new:hover {
+            background-color: #059669;
+        }
+
+    .table-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        border: 1px solid #e5e7eb;
+        overflow: hidden;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
+
+        .data-table th {
+            background-color: #f9fafb;
+            padding: 16px 20px;
+            font-size: 0.75rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .data-table td {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f3f4f6;
+            color: #374151;
+            font-size: 0.95rem;
+        }
+
+    .btn-mod {
+        background: #e5e7eb;
+        border: 1px solid #d1d5db;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        color: #374151;
+        font-size: 0.85rem;
+    }
+
+        .btn-mod:hover {
+            background: #d1d5db;
+        }
+</style>
+
+<h2 class="page-title">Gestión de Ubicaciones</h2>
+
+<div class="toolbar">
+    <button class="btn-new">+ Añadir Ubicación</button>
+</div>
+
+<div class="table-card">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Sede</th>
+                <th>Ambiente</th>
+                <th>Tipo</th>
+                <th style="text-align: center;">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td style="font-weight: 600;">@item.Sede</td>
+                    <td>@item.Ambiente</td>
+                    <td>@item.Tipo</td>
+                    <td style="text-align: center;">
+                        <button class="btn-mod">Modificar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

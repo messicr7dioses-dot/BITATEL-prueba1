@@ -1,0 +1,231 @@
+﻿@{
+    ViewBag.Title = "Facturación";
+    Layout = "~/Views/Shared/_LayoutCliente.cshtml";
+}
+
+<style>
+    .page-title {
+        margin-bottom: 25px;
+        color: #1f2937;
+    }
+
+    /* Filtros */
+    .filter-container {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .btn-filter {
+        padding: 8px 16px;
+        border: 1px solid #d1d5db;
+        background: white;
+        border-radius: 6px;
+        cursor: pointer;
+        color: #4b5563;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+        .btn-filter.active {
+            background: #0056b3;
+            color: white;
+            border-color: #0056b3;
+        }
+
+        .btn-filter:hover {
+            background: #f3f4f6;
+        }
+
+    /* KPIs */
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .kpi-card {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+
+    .kpi-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #111827;
+        margin: 5px 0;
+    }
+
+    /* Tabla */
+    .invoice-card {
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        overflow: hidden;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .data-table th {
+            background: #f9fafb;
+            padding: 14px 20px;
+            text-align: left;
+            font-size: 0.85rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .data-table td {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f3f4f6;
+            color: #374151;
+        }
+
+    /* Badges de Estado */
+    .badge-status {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-paid {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .btn-detail {
+        background: #f3f4f6;
+        border: 1px solid #d1d5db;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        color: #374151;
+        font-size: 0.85rem;
+    }
+
+    .btn-download-formal {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #ffffff;
+        border: 1px solid #0056b3;
+        color: #0056b3;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+        .btn-download-formal:hover {
+            background: #0056b3;
+            color: white;
+        }
+</style>
+
+<h2 class="page-title">Gestión de Facturación</h2>
+
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <h4>Total Deuda Vencimiento</h4>
+        <p class="kpi-value" style="color: #ef4444;">$120.00</p>
+    </div>
+    <div class="kpi-card">
+        <h4>Total Valor Reposición</h4>
+        <p class="kpi-value" style="color: #6366f1;">$1,500.00</p>
+    </div>
+    <div class="kpi-card">
+        <h4>Próxima Factura</h4>
+        <p class="kpi-value">$450.00</p>
+    </div>
+</div>
+
+<div class="filter-container">
+    <button class="btn-filter active" onclick="filtrar('todos', this)">AMBOS</button>
+    <button class="btn-filter" onclick="filtrar('vencimiento', this)">VENCIMIENTO</button>
+    <button class="btn-filter" onclick="filtrar('reposicion', this)">REPOSICIÓN</button>
+</div>
+
+<div class="invoice-card">
+    <table class="data-table" id="tablaFacturas">
+        <thead>
+            <tr>
+                <th>N° Factura</th>
+                <th>Concepto</th>
+                <th>Tipo</th>
+                <th>Monto</th>
+                <th>Estado de Pago</th>
+                <th>Detalle</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr data-tipo="vencimiento">
+                <td style="font-weight: 600;">INV-26-006</td>
+                <td>Alquiler Mensual</td>
+                <td>Vencimiento</td>
+                <td>$450.00</td>
+                <td><span class="badge-status status-pending">Pendiente</span></td>
+                <td><button class="btn-detail" onclick="verDetalle('INV-26-006')">Ver Detalle</button></td>
+                <td><button class="btn-download-formal"><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> PDF</button></td>
+            </tr>
+            <tr data-tipo="reposicion">
+                <td style="font-weight: 600;">INV-26-005</td>
+                <td>Reposición Laptop Dell</td>
+                <td>Reposición</td>
+                <td>$1,500.00</td>
+                <td><span class="badge-status status-paid">Pagado</span></td>
+                <td><button class="btn-detail" onclick="verDetalle('INV-26-005')">Ver Detalle</button></td>
+                <td><button class="btn-download-formal"><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> PDF</button></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div id="modalDetalle" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:2000;">
+    <div style="background:white; padding:25px; border-radius:8px; width:500px;">
+        <h3 id="tituloModal">Detalle de Factura</h3>
+        <table style="width:100%; margin-top:15px; border-collapse:collapse;">
+            <tr style="border-bottom:1px solid #ddd;"><th>Activo</th><th>Cálculo</th><th>Monto</th></tr>
+            <tbody id="contenidoDetalle"></tbody>
+        </table>
+        <button onclick="cerrarDetalle()" style="margin-top:20px; padding:8px 16px;">Cerrar</button>
+    </div>
+</div>
+
+<script>
+    function filtrar(tipo, btn) {
+        document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const filas = document.querySelectorAll('#tablaFacturas tbody tr');
+        filas.forEach(fila => {
+            if (tipo === 'todos' || fila.getAttribute('data-tipo') === tipo) fila.style.display = '';
+            else fila.style.display = 'none';
+        });
+    }
+
+    function verDetalle(numFactura) {
+        const modal = document.getElementById('modalDetalle');
+        const contenido = document.getElementById('contenidoDetalle');
+        document.getElementById('tituloModal').innerText = "Detalle: " + numFactura;
+        contenido.innerHTML = (numFactura == 'INV-26-006') ?
+            `<tr><td>Switch 01</td><td>10 días mora</td><td>$10.00</td></tr>` :
+            `<tr><td>Laptop Dell</td><td>Valor Reposición</td><td>$1,500.00</td></tr>`;
+        modal.style.display = 'flex';
+    }
+    function cerrarDetalle() { document.getElementById('modalDetalle').style.display = 'none'; }
+</script>

@@ -1,0 +1,83 @@
+﻿@model IEnumerable<dynamic>
+
+@{
+    ViewBag.Title = "Contratos";
+    Layout = "~/Views/Shared/_LayoutCliente.cshtml";
+}
+
+<style>
+    .page-title {
+        margin-bottom: 25px;
+        color: #1f2937;
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        overflow: hidden;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .data-table th {
+            background: #f9fafb;
+            padding: 14px 20px;
+            text-align: left;
+            font-size: 0.85rem;
+            color: #6b7280;
+            text-transform: uppercase;
+        }
+
+        .data-table td {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f3f4f6;
+            color: #374151;
+        }
+
+    .badge-estado {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+</style>
+
+<h2 class="page-title">Contratos de Servicio</h2>
+
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>N° Contrato</th>
+                <th>Inicio</th>
+                <th>Vencimiento</th>
+                <th>Activo</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td style="font-weight: 600;">@item.Numero</td>
+                    <td>@item.Inicio</td>
+                    <td>@item.Fin</td>
+                    <td>@item.Activo</td>
+                    <td>
+                        <span class="badge-estado" style="background:@(item.Estado == "Vigente" ? "#d1fae5" : "#fee2e2"); color:@(item.Estado == "Vigente" ? "#065f46" : "#b91c1c");">
+                            @item.Estado
+                        </span>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div style="margin-top: 20px; padding: 20px; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; color: #0369a1; font-size: 0.9rem;">
+    <strong>ℹ️ Política de Garantías:</strong> Recuerda que para solicitar un reemplazo técnico, el activo debe estar bajo contrato vigente y presentar estados como: Dañado, Averiado, Obsoleto o Falla Crítica.
+</div>

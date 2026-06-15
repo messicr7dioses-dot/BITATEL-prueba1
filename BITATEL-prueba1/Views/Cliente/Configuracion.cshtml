@@ -1,0 +1,514 @@
+﻿@{
+    ViewBag.Title = "Configuración";
+    Layout = "~/Views/Shared/_LayoutCliente.cshtml";
+}
+
+<style>
+    .config-container {
+        max-width: 900px;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    .config-section {
+        background: white;
+        border-radius: 8px;
+        padding: 30px;
+        margin-bottom: 25px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+        border: 1px solid #e5e7eb;
+        transition: all 0.3s ease;
+    }
+
+    .section-title {
+        margin-top: 0;
+        border-bottom: 1px solid #f3f4f6;
+        padding-bottom: 15px;
+        color: #1f2937;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1.25rem;
+    }
+
+        .section-title svg {
+            width: 22px;
+            height: 22px;
+            stroke: #0056b3;
+            fill: none;
+            stroke-width: 2;
+        }
+
+    .config-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 18px 0;
+        border-bottom: 1px solid #f9fafb;
+    }
+
+        .config-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+    .config-text h4 {
+        margin: 0 0 5px 0;
+        color: #374151;
+        font-size: 1.05rem;
+    }
+
+    .config-text p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 0.9rem;
+        max-width: 500px;
+        line-height: 1.4;
+    }
+
+    /* Controles de Formulario */
+    .form-select {
+        padding: 8px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        background-color: white;
+        color: #374151;
+        font-size: 0.95rem;
+        cursor: pointer;
+        outline: none;
+        width: 200px;
+    }
+
+    .btn-outline {
+        padding: 8px 16px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        background-color: white;
+        color: #374151;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+        .btn-outline:hover {
+            background-color: #f3f4f6;
+            border-color: #9ca3af;
+        }
+
+        .btn-outline svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+    /* Interruptor iOS Style */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 46px;
+        height: 24px;
+        flex-shrink: 0;
+    }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #cbd5e1;
+        transition: .3s;
+        border-radius: 34px;
+    }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+    input:checked + .slider {
+        background-color: #0056b3;
+    }
+
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+
+    /* ESTILOS DEL MODAL (Historial de Accesos) */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-content {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        width: 100%;
+        max-width: 500px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        position: relative;
+    }
+
+    .modal-close {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #6b7280;
+        border: none;
+        background: none;
+        transition: color 0.2s;
+    }
+
+        .modal-close:hover {
+            color: #ef4444;
+        }
+
+    .history-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+        text-align: left;
+    }
+
+        .history-table th {
+            border-bottom: 2px solid #e5e7eb;
+            padding: 10px;
+            color: #4b5563;
+            font-size: 0.9rem;
+        }
+
+        .history-table td {
+            border-bottom: 1px solid #f3f4f6;
+            padding: 12px 10px;
+            color: #374151;
+            font-size: 0.9rem;
+        }
+
+    /* TOAST NOTIFICATION (Alerta de guardado) */
+    .toast {
+        visibility: hidden;
+        min-width: 250px;
+        background-color: #10b981;
+        color: #fff;
+        text-align: center;
+        border-radius: 4px;
+        padding: 12px;
+        position: fixed;
+        z-index: 3000;
+        right: 30px;
+        bottom: 30px;
+        font-size: 0.95rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        opacity: 0;
+        transition: opacity 0.3s, visibility 0.3s;
+    }
+
+        .toast.show {
+            visibility: visible;
+            opacity: 1;
+        }
+</style>
+
+<div class="config-container">
+    <h2 style="color: #1f2937; margin-top: 0; margin-bottom: 25px;">Configuración del Sistema</h2>
+
+    <div class="config-section" id="section-ui">
+        <h3 class="section-title">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+            Interfaz y Tablero
+        </h3>
+
+        <div class="config-row">
+            <div class="config-text">
+                <h4>Pantalla de Inicio Personalizada</h4>
+                <p>Elige qué módulo se abrirá por defecto al iniciar sesión.</p>
+            </div>
+            <select class="form-select" id="selInicio" onchange="guardarConfiguracion()">
+                <option value="dashboard">Dashboard (Resumen)</option>
+                <option value="activos">Mis Activos Fijos</option>
+                <option value="facturacion">Facturación</option>
+            </select>
+        </div>
+
+        <div class="config-row">
+            <div class="config-text">
+                <h4>Modo Oscuro (Dark Mode)</h4>
+                <p>Cambia la paleta a tonos oscuros para reducir la fatiga visual.</p>
+            </div>
+            <label class="switch"><input type="checkbox" id="darkToggle" onchange="toggleDarkMode()"><span class="slider"></span></label>
+        </div>
+
+        <div class="config-row">
+            <div class="config-text">
+                <h4>Ocultar menú lateral automáticamente</h4>
+                <p>Maximiza el espacio de trabajo replegando la barra en pantallas pequeñas.</p>
+            </div>
+            <label class="switch"><input type="checkbox" id="sidebarToggle" onchange="toggleSidebarConfig()"><span class="slider"></span></label>
+        </div>
+    </div>
+
+    <div class="config-section">
+        <h3 class="section-title">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            Exportación y Reportes
+        </h3>
+
+        <div class="config-row">
+            <div class="config-text">
+                <h4>Formato de Descarga Predeterminado</h4>
+                <p>Formato que se generará al hacer clic rápido en "Exportar".</p>
+            </div>
+            <select class="form-select">
+                <option>Excel (.xlsx)</option>
+                <option>CSV delimitado</option>
+                <option>Documento PDF</option>
+            </select>
+        </div>
+
+        <div class="config-row">
+            <div class="config-text">
+                <h4>Membrete en Exportaciones</h4>
+                <p>Incluir el logo de tu empresa en la cabecera de los reportes PDF.</p>
+            </div>
+            <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+        </div>
+
+        <div class="config-row">
+            <div class="config-text">
+                <h4>Separador Decimal</h4>
+                <p>Configura el símbolo utilizado para los montos financieros.</p>
+            </div>
+            <select class="form-select">
+                <option>Punto (1,000.50)</option>
+                <option>Coma (1.000,50)</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="config-section">
+        <h3 class="section-title">
+            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            Seguridad y Privacidad
+        </h3>
+
+        <div class="config-row">
+            <div class="config-text">
+                <h4>Ocultar Métricas Financieras (Modo Privacidad)</h4>
+                <p>Difumina los costos y multas en pantalla para evitar que terceros los vean.</p>
+            </div>
+            <label class="switch"><input type="checkbox" id="privacyToggle" onchange="guardarConfiguracion()"><span class="slider"></span></label>
+        </div>
+
+        <div class="config-row">
+            <div class="config-text">
+                <h4>Confirmación de Acciones Sensibles</h4>
+                <p>Exigir doble confirmación antes de solicitar reemplazos o traslados de activos.</p>
+            </div>
+            <label class="switch"><input type="checkbox" id="confirmToggle" onchange="guardarConfiguracion()" checked><span class="slider"></span></label>
+        </div>
+
+        <div class="config-row">
+            <div class="config-text">
+                <h4>Cierre de Sesión por Inactividad</h4>
+                <p>Tiempo máximo sin actividad antes de cerrar la sesión automáticamente.</p>
+            </div>
+            <select class="form-select" id="selTimeout" onchange="guardarConfiguracion()">
+                <option value="5">5 minutos</option>
+                <option value="15" selected>15 minutos</option>
+                <option value="30">30 minutos</option>
+            </select>
+        </div>
+
+        <div class="config-row">
+            <div class="config-text">
+                <h4>Historial de Accesos</h4>
+                <p>Revisa la dirección IP y fecha de los últimos inicios de sesión de esta cuenta.</p>
+            </div>
+            <button class="btn-outline" onclick="abrirModal()">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                Ver Registro
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="historyModal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="cerrarModal()">&times;</button>
+        <h3 style="margin-top: 0; color: #1f2937; display: flex; align-items: center; gap: 8px;">
+            <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; stroke: #0056b3; fill: none; stroke-width: 2;"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+            Registro de Actividad
+        </h3>
+        <p style="color: #6b7280; font-size: 0.9rem;">Últimas 5 conexiones detectadas en la plataforma.</p>
+
+        <table class="history-table">
+            <thead>
+                <tr>
+                    <th>Fecha y Hora</th>
+                    <th>Dirección IP</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>15 Jun 2026, 08:30 AM</td>
+                    <td>190.237.15.142 (UPN)</td>
+                    <td><span style="color: #10b981; font-weight: bold;">Exitoso</span></td>
+                </tr>
+                <tr>
+                    <td>14 Jun 2026, 02:15 PM</td>
+                    <td>190.237.15.142 (UPN)</td>
+                    <td><span style="color: #10b981; font-weight: bold;">Exitoso</span></td>
+                </tr>
+                <tr>
+                    <td>14 Jun 2026, 02:10 PM</td>
+                    <td>190.237.15.142 (UPN)</td>
+                    <td><span style="color: #ef4444; font-weight: bold;">Fallido</span></td>
+                </tr>
+                <tr>
+                    <td>12 Jun 2026, 09:45 AM</td>
+                    <td>181.65.22.10 (Lima, PE)</td>
+                    <td><span style="color: #10b981; font-weight: bold;">Exitoso</span></td>
+                </tr>
+                <tr>
+                    <td>10 Jun 2026, 11:20 AM</td>
+                    <td>181.65.22.10 (Lima, PE)</td>
+                    <td><span style="color: #10b981; font-weight: bold;">Exitoso</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="toastMensaje" class="toast">Configuración actualizada correctamente</div>
+
+<script>
+    // 1. Al cargar la página, recuperar preferencias guardadas en memoria
+    document.addEventListener("DOMContentLoaded", () => {
+        if (localStorage.getItem('bitatel_dark') === 'true') {
+            document.getElementById('darkToggle').checked = true;
+            aplicarModoOscuro(true);
+        }
+
+        if (localStorage.getItem('bitatel_autohide') === 'true') {
+            document.getElementById('sidebarToggle').checked = true;
+        }
+
+        if (localStorage.getItem('bitatel_privacy') === 'true') {
+            document.getElementById('privacyToggle').checked = true;
+        }
+
+        let selInicio = localStorage.getItem('bitatel_inicio');
+        if (selInicio) document.getElementById('selInicio').value = selInicio;
+
+        let selTimeout = localStorage.getItem('bitatel_timeout');
+        if (selTimeout) document.getElementById('selTimeout').value = selTimeout;
+    });
+
+    // 2. Funciones de Interfaz Activa
+    function toggleDarkMode() {
+        const isDark = document.getElementById('darkToggle').checked;
+        localStorage.setItem('bitatel_dark', isDark);
+        aplicarModoOscuro(isDark);
+        mostrarToast();
+    }
+
+    // Lógica visual básica para simular el modo oscuro en la vista actual
+    function aplicarModoOscuro(activo) {
+        const areas = document.querySelectorAll('.config-section, .main-container, .content-area');
+        if (activo) {
+            document.body.style.backgroundColor = '#111827';
+            areas.forEach(el => { el.style.backgroundColor = '#1f2937'; el.style.color = '#f9fafb'; el.style.borderColor = '#374151'; });
+            document.querySelectorAll('h2, h3, h4').forEach(h => h.style.color = '#f9fafb');
+        } else {
+            document.body.style.backgroundColor = '#f8f9fa';
+            areas.forEach(el => { el.style.backgroundColor = ''; el.style.color = ''; el.style.borderColor = ''; });
+            document.querySelectorAll('h2, h3, h4').forEach(h => h.style.color = '');
+        }
+    }
+
+    function toggleSidebarConfig() {
+        const autoHide = document.getElementById('sidebarToggle').checked;
+        localStorage.setItem('bitatel_autohide', autoHide);
+
+        // Dispara la función del Layout directamente
+        if (autoHide) {
+            document.getElementById("sidebar").classList.add("collapsed");
+        } else {
+            document.getElementById("sidebar").classList.remove("collapsed");
+        }
+        mostrarToast();
+    }
+
+    // 3. Función general para guardar otras preferencias
+    function guardarConfiguracion() {
+        localStorage.setItem('bitatel_inicio', document.getElementById('selInicio').value);
+        localStorage.setItem('bitatel_privacy', document.getElementById('privacyToggle').checked);
+        localStorage.setItem('bitatel_confirm', document.getElementById('confirmToggle').checked);
+        localStorage.setItem('bitatel_timeout', document.getElementById('selTimeout').value);
+        mostrarToast();
+    }
+
+    // 4. Lógica del Modal
+    function abrirModal() {
+        document.getElementById('historyModal').style.display = 'flex';
+    }
+
+    function cerrarModal() {
+        document.getElementById('historyModal').style.display = 'none';
+    }
+
+    // Cerrar modal al hacer clic afuera
+    window.onclick = function (event) {
+        const modal = document.getElementById('historyModal');
+        if (event.target == modal) { modal.style.display = "none"; }
+
+        // (Mantiene la función del Layout para cerrar el dropdown)
+        if (!event.target.closest('.topbar-btn') && !event.target.closest('.modal-content')) {
+            var dropdowns = document.getElementsByClassName("dropdown-content");
+            for (var i = 0; i < dropdowns.length; i++) {
+                if (dropdowns[i].classList.contains('show-menu')) {
+                    dropdowns[i].classList.remove('show-menu');
+                }
+            }
+        }
+    }
+
+    // 5. Lógica del Toast (Notificación verde emergente)
+    function mostrarToast() {
+        const toast = document.getElementById("toastMensaje");
+        toast.className = "toast show";
+        setTimeout(function () { toast.className = toast.className.replace("show", ""); }, 3000);
+    }
+</script>
