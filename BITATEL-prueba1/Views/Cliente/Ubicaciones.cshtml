@@ -1,114 +1,132 @@
-﻿@model IEnumerable<BITATEL_prueba1.Models.UbicacionViewModel>
-
+﻿@model IEnumerable<BITATEL_prueba1.Controllers.ClienteController.SedeClienteItem>
 @{
-    ViewBag.Title = "Ubicaciones";
+    ViewBag.Title = "Mis Sedes";
     Layout = "~/Views/Shared/_LayoutCliente.cshtml";
 }
 
 <style>
-    /* Usamos los mismos estilos que en MisActivos para consistencia */
-    .page-title {
-        margin-top: 0;
-        color: #1f2937;
-        font-size: 1.8rem;
-        font-weight: 600;
-        margin-bottom: 25px;
-    }
-
-    .toolbar {
-        display: flex;
-        justify-content: flex-end;
-        margin-bottom: 20px;
-    }
-
-    .btn-new {
-        background-color: #10b981;
-        color: white;
-        padding: 10px 16px;
-        border-radius: 6px;
-        border: none;
-        font-weight: 500;
-        cursor: pointer;
-        transition: 0.2s;
-    }
-
-        .btn-new:hover {
-            background-color: #059669;
-        }
-
-    .table-card {
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-        border: 1px solid #e5e7eb;
-        overflow: hidden;
-    }
-
-    .data-table {
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
         width: 100%;
-        border-collapse: collapse;
-        text-align: left;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
     }
 
-        .data-table th {
-            background-color: #f9fafb;
-            padding: 16px 20px;
-            font-size: 0.75rem;
-            color: #6b7280;
-            text-transform: uppercase;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .data-table td {
-            padding: 16px 20px;
-            border-bottom: 1px solid #f3f4f6;
-            color: #374151;
-            font-size: 0.95rem;
-        }
-
-    .btn-mod {
-        background: #e5e7eb;
-        border: 1px solid #d1d5db;
-        padding: 6px 12px;
-        border-radius: 4px;
-        cursor: pointer;
-        color: #374151;
-        font-size: 0.85rem;
+    .modal-box {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        width: 400px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
     }
 
-        .btn-mod:hover {
-            background: #d1d5db;
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #4b5563;
+            font-size: 0.9rem;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 5px;
+            box-sizing: border-box;
         }
 </style>
 
-<h2 class="page-title">Gestión de Ubicaciones</h2>
+<div style="max-width: 1200px; margin: 0 auto; padding-bottom: 40px;">
 
-<div class="toolbar">
-    <button class="btn-new">+ Añadir Ubicación</button>
-</div>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div>
+            <h2 style="color: #333; margin: 0;">Mis Sedes y Sucursales</h2>
+            <p style="color: #666; margin-top: 5px;">Gestión de infraestructura y ubicación física.</p>
+        </div>
+        <button onclick="document.getElementById('modalNuevaSede').style.display='flex'" style="background-color: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+            ➕ Añadir Nueva Sede
+        </button>
+    </div>
 
-<div class="table-card">
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th>Sede</th>
-                <th>Ambiente</th>
-                <th>Tipo</th>
-                <th style="text-align: center;">Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model)
-            {
+    <div style="background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid #e5e7eb;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead style="background-color: #f8fafc; color: #475569; font-size: 0.9rem; border-bottom: 2px solid #e2e8f0;">
                 <tr>
-                    <td style="font-weight: 600;">@item.Sede</td>
-                    <td>@item.Ambiente</td>
-                    <td>@item.Tipo</td>
-                    <td style="text-align: center;">
-                        <button class="btn-mod">Modificar</button>
-                    </td>
+                    <th style="padding: 15px;">Nombre de la Sede</th>
+                    <th style="padding: 15px;">Departamento</th>
+                    <th style="padding: 15px;">Observaciones</th>
+                    <th style="padding: 15px; text-align: center;">Ambientes Asignados</th>
+                    <th style="padding: 15px; text-align: center;">Acciones</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="5" style="padding: 30px; text-align: center; color: #666;">No hay sedes registradas.</td></tr>
+                }
+                @foreach (var item in Model)
+                {
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 15px; font-weight: bold; color: #1e40af;">@item.NombreSede</td>
+                        <td style="padding: 15px; color: #475569;">@item.Departamento</td>
+                        <td style="padding: 15px; color: #64748b; font-size: 0.85rem;">@item.Observacion</td>
+                        <td style="padding: 15px; text-align: center; font-weight: bold; color: #10b981;">@item.TotalAmbientes Áreas</td>
+                        <td style="padding: 15px; text-align: center;">
+                            <a href="@Url.Action("Ambientes", "Cliente", new { id = item.IdSede })" style="background: white; color: #3b82f6; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 4px; font-weight: bold; text-decoration: none; display: inline-block;">Ver Ambientes ➔</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 </div>
+
+<div id="modalNuevaSede" class="modal-overlay">
+    <div class="modal-box">
+        <h3 style="margin-top:0; color:#1e40af; border-bottom:1px solid #eee; padding-bottom:10px;">Añadir Nueva Sede</h3>
+        <div class="form-group">
+            <label>Nombre de la Sede *</label>
+            <input type="text" id="txtNom" placeholder="Ej: Torre Central San Isidro">
+        </div>
+        <div class="form-group">
+            <label>Departamento / Ciudad</label>
+            <input type="text" id="txtDep" placeholder="Ej: Lima">
+        </div>
+        <div class="form-group">
+            <label>Observación (Opcional)</label>
+            <textarea id="txtObs" rows="3"></textarea>
+        </div>
+        <div style="text-align: right; margin-top: 20px;">
+            <button onclick="document.getElementById('modalNuevaSede').style.display='none'" style="padding: 10px 15px; cursor:pointer; background:#f1f5f9; color:#475569; border:none; border-radius:5px; font-weight:bold;">Cancelar</button>
+            <button onclick="guardarSede()" style="padding: 10px 20px; cursor:pointer; background:#10b981; color:white; border:none; border-radius:5px; font-weight:bold;">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function guardarSede() {
+        var nom = document.getElementById('txtNom').value;
+        var dep = document.getElementById('txtDep').value;
+        var obs = document.getElementById('txtObs').value;
+
+        if (!nom) { alert("Escriba el nombre de la sede."); return; }
+
+        fetch('/Cliente/GuardarSede', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombreSede: nom, departamento: dep, observacion: obs })
+        }).then(res => res.json()).then(data => {
+            if (data.success) { location.reload(); } else { alert("Error: " + data.message); }
+        });
+    }
+</script>

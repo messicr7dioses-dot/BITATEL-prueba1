@@ -1,0 +1,83 @@
+﻿@{
+    ViewBag.Title = "Crear Nuevo Usuario";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div style="max-width: 700px; margin: 0 auto; padding-bottom: 40px;">
+    <h2 style="color: #333; margin-bottom: 20px;">Crear Nuevo Usuario</h2>
+
+    <div style="background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); padding: 30px; border-top: 5px solid #10b981;">
+
+        <form action="@Url.Action("GuardarUsuario", "Admin")" method="post" onsubmit="return validarConfirmacionAdmin()" style="display: flex; flex-direction: column; gap: 20px;">
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <label style="display: block; margin-bottom: 5px; color: #555; font-weight: bold;">Nombre Completo *</label>
+                    <input type="text" name="NombreCompleto" class="form-control" placeholder="Ej: Luis Ramirez" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box;" />
+                </div>
+
+                <div>
+                    <label style="display: block; margin-bottom: 5px; color: #555; font-weight: bold;">Usuario (Para Login) *</label>
+                    <input type="text" name="Username" class="form-control" placeholder="Ej: lramirez" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; text-transform: lowercase;" />
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <label style="display: block; margin-bottom: 5px; color: #555; font-weight: bold;">Contraseña Inicial *</label>
+                    <input type="text" name="Password" class="form-control" placeholder="Mínimo 6 caracteres" required minlength="6" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box;" />
+                </div>
+
+                <div>
+                    <label style="display: block; margin-bottom: 5px; color: #555; font-weight: bold;">Nivel de Acceso (Rol) *</label>
+                    @Html.DropDownList("IdRol", (IEnumerable<SelectListItem>)ViewBag.ListaRoles, "Seleccione un rol...", new { @class = "form-control", id = "cboRol", onchange = "evaluarFormulario()", @required = "required", style = "width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;" })
+                </div>
+            </div>
+
+            <div id="cajaEmpresa" style="display: none; background: #f8fafc; padding: 15px; border-radius: 5px; border: 1px solid #e2e8f0; margin-top: 10px;">
+                <label style="display: block; margin-bottom: 5px; color: #1e40af; font-weight: bold;">Vincular a Cliente Corporativo *</label>
+                @Html.DropDownList("IdCliente", (IEnumerable<SelectListItem>)ViewBag.ListaClientes, "Seleccione la empresa a la que pertenece...", new { @class = "form-control", id = "cboCliente", style = "width: 100%; padding: 10px; border: 1px solid #93c5fd; border-radius: 5px;" })
+                <small style="color: #64748b; display: block; margin-top: 5px;">Este usuario solo podrá ver el inventario de la empresa seleccionada.</small>
+            </div>
+
+            <div style="padding-top: 15px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 15px;">
+                <a href="@Url.Action("Usuarios", "Admin")" style="background-color: #f1f5f9; color: #475569; text-decoration: none; padding: 12px 25px; border-radius: 5px; font-weight: bold; transition: background 0.3s;">Cancelar</a>
+
+                <button type="submit" style="background-color: #10b981; color: white; border: none; padding: 12px 35px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: background 0.3s; font-size: 1rem;">
+                    Crear Usuario
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function evaluarFormulario() {
+        var rolSeleccionado = document.getElementById("cboRol").value;
+        var cajaEmpresa = document.getElementById("cajaEmpresa");
+        var cboCliente = document.getElementById("cboCliente");
+
+        // Si el Rol es 2 (Cliente), mostramos la caja y volvemos el combo obligatorio
+        if (rolSeleccionado === "2") {
+            cajaEmpresa.style.display = "block";
+            cboCliente.setAttribute("required", "required");
+        } else {
+            // Si el Rol es 1 (Admin), ocultamos la caja y quitamos la obligación
+            cajaEmpresa.style.display = "none";
+            cboCliente.removeAttribute("required");
+            cboCliente.value = ""; // Limpiamos selección por si acaso
+        }
+    }
+
+    function validarConfirmacionAdmin() {
+        var rolSeleccionado = document.getElementById("cboRol").value;
+
+        // Si el rol es 1, detenemos el envío del formulario para lanzar la advertencia
+        if (rolSeleccionado === "1") {
+            return confirm("⚠️ ATENCIÓN DE SEGURIDAD\n\nEstás a punto de otorgar privilegios de ADMINISTRADOR. Este usuario tendrá control total sobre el inventario, facturación y contratos del sistema.\n\n¿Estás completamente seguro de autorizar esta creación?");
+        }
+
+        // Si es cliente (rol 2), pasa directo sin preguntar
+        return true;
+    }
+</script>

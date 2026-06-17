@@ -1,0 +1,128 @@
+﻿@model IEnumerable<BITATEL_prueba1.Controllers.ClienteController.AmbienteClienteItem>
+@{
+    ViewBag.Title = "Ambientes Físicos";
+    Layout = "~/Views/Shared/_LayoutCliente.cshtml";
+}
+
+<style>
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-box {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        width: 400px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #4b5563;
+            font-size: 0.9rem;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+</style>
+
+<div style="max-width: 1000px; margin: 0 auto; padding-bottom: 40px;">
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div>
+            <h2 style="color: #333; margin: 0;">Ambientes: <span style="color: #d97706;">@ViewBag.NombreSede</span></h2>
+            <p style="color: #666; margin-top: 5px;">Distribución interna de la sede.</p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <a href="@Url.Action("Ubicaciones", "Cliente")" style="background-color: #f1f5f9; color: #475569; text-decoration: none; padding: 10px 15px; border-radius: 5px; font-weight: bold;">Volver a Sedes</a>
+            <button onclick="document.getElementById('modalNuevoAmbiente').style.display='flex'" style="background-color: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer;">
+                ➕ Añadir Ambiente
+            </button>
+        </div>
+    </div>
+
+    <div style="background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid #e5e7eb;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead style="background-color: #f8fafc; color: #475569; font-size: 0.9rem; border-bottom: 2px solid #e2e8f0;">
+                <tr>
+                    <th style="padding: 15px;">Nombre del Ambiente</th>
+                    <th style="padding: 15px;">Tipo</th>
+                    <th style="padding: 15px; text-align: center;">Hardware Instalado</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="3" style="padding: 30px; text-align: center; color: #666;">No hay ambientes creados.</td></tr>
+                }
+                @foreach (var item in Model)
+                {
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 15px; font-weight: bold; color: #1e40af;">@item.NombreEspecifico</td>
+                        <td style="padding: 15px; color: #475569;">@item.TipoAmbiente</td>
+                        <td style="padding: 15px; text-align: center; font-weight: bold; color: #3b82f6;">@item.TotalEquiposFisicos Activos</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="modalNuevoAmbiente" class="modal-overlay">
+    <div class="modal-box">
+        <h3 style="margin-top:0; color:#1e40af; border-bottom:1px solid #eee; padding-bottom:10px;">Añadir Nuevo Ambiente</h3>
+        <div class="form-group">
+            <label>Nombre Específico *</label>
+            <input type="text" id="txtNomAmb" placeholder="Ej: Laboratorio 1, Oficina de Gerencia">
+        </div>
+        <div class="form-group">
+            <label>Tipo de Ambiente</label>
+            <select id="cboTipoAmb">
+                <option value="Oficina/Área">Oficina / Área Administrativa</option>
+                <option value="Datacenter/Rack">Datacenter / Cuarto de Rack</option>
+                <option value="Almacén">Almacén / Depósito</option>
+            </select>
+        </div>
+        <div style="text-align: right; margin-top: 20px;">
+            <button onclick="document.getElementById('modalNuevoAmbiente').style.display='none'" style="padding: 10px 15px; cursor:pointer; background:#f1f5f9; color:#475569; border:none; border-radius:5px; font-weight:bold;">Cancelar</button>
+            <button onclick="guardarAmbiente()" style="padding: 10px 20px; cursor:pointer; background:#3b82f6; color:white; border:none; border-radius:5px; font-weight:bold;">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function guardarAmbiente() {
+        var nom = document.getElementById('txtNomAmb').value;
+        var tipo = document.getElementById('cboTipoAmb').value;
+
+        if (!nom) { alert("Escriba el nombre del ambiente."); return; }
+
+        fetch('/Cliente/GuardarAmbiente', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idSede: @ViewBag.IdSede, nombreEspecifico: nom, tipoAmbiente: tipo })
+        }).then(res => res.json()).then(data => {
+            if (data.success) { location.reload(); } else { alert("Error: " + data.message); }
+        });
+    }
+</script>

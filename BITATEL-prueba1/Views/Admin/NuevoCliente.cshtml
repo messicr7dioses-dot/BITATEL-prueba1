@@ -1,0 +1,94 @@
+﻿@{
+    ViewBag.Title = "Registrar Cliente";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div style="max-width: 1200px; margin: 0 auto; padding-bottom: 40px;">
+
+    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+        <a href="@Url.Action("Clientes", "Admin")" style="color: #64748b; text-decoration: none;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        </a>
+        <h2 style="color: #333; margin: 0;">Registrar Cliente Corporativo</h2>
+    </div>
+
+    <form action="@Url.Action("GuardarCliente", "Admin")" method="post">
+        <div style="background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 35px; border-top: 5px solid #d97706;">
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+
+                <div>
+                    <h4 style="color: #1e293b; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 1.1rem; margin-top: 0;">
+                        🏢 Datos de la Empresa
+                    </h4>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; font-weight: bold; font-size: 0.85rem; margin-bottom: 5px; color: #475569;">Nombre Comercial (Mostrar en sistema) *</label>
+                        <input type="text" name="NombreEmpresa" required placeholder="Ej: Global Hitss, BCP..." style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box; font-family: inherit;" />
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; font-weight: bold; font-size: 0.85rem; margin-bottom: 5px; color: #475569;">Razón Social *</label>
+                        <input type="text" name="RazonSocial" required placeholder="Ej: Global Hitss Perú S.A.C." style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box; font-family: inherit;" />
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; font-weight: bold; font-size: 0.85rem; margin-bottom: 5px; color: #475569;">RUC *</label>
+                        <input type="text" name="Ruc" required placeholder="11 dígitos" maxlength="11" style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box; font-family: inherit;" />
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; font-weight: bold; font-size: 0.85rem; margin-bottom: 5px; color: #475569;">Descripción / Observaciones</label>
+                        <textarea name="Descripcion" rows="4" placeholder="Detalles de facturación, condiciones de pago..." style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box; font-family: inherit; resize: vertical;"></textarea>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 style="color: #1e293b; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 1.1rem; margin-top: 0;">
+                        👤 Acceso al Portal
+                    </h4>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; font-weight: bold; font-size: 0.85rem; margin-bottom: 5px; color: #475569;">Nombre del Responsable *</label>
+                        <input type="text" name="NombreResponsable" required placeholder="Ej: Carlos López" style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box; font-family: inherit;" />
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; font-weight: bold; font-size: 0.85rem; margin-bottom: 5px; color: #475569;">Usuario (Identificador Corto) *</label>
+                        <input type="text" name="Username" required placeholder="ej: hitss, upn, saga..." style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box; font-family: inherit;" />
+                        <small style="color: #888; font-size: 0.8rem; display: block; margin-top: 5px;">*Este usuario definirá el prefijo de sus activos (Ej: UPN-LAP-001).</small>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; font-weight: bold; font-size: 0.85rem; margin-bottom: 5px; color: #475569;">Contraseña *</label>
+                        <input type="password" name="Password" required placeholder="Contraseña de acceso" style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box; font-family: inherit;" />
+                    </div>
+                </div>
+
+                <div>
+                    <h4 style="color: #1e293b; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 1.1rem; margin-top: 0;">
+                        📍 Sede y Ambiente Inicial
+                    </h4>
+
+                    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 5px; margin-bottom: 15px; font-size: 0.85rem; color: #166534;">
+                        ✅ Crea automáticamente la primera sede para agilizar el despacho de equipos.
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; font-weight: bold; font-size: 0.85rem; margin-bottom: 5px; color: #475569;">Nombre de la Sede Principal *</label>
+                        <input type="text" name="NombreSede" required placeholder="Ej: Campus Breña, Torre Central..." style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box; font-family: inherit;" />
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; font-weight: bold; font-size: 0.85rem; margin-bottom: 5px; color: #475569;">Departamento / Ciudad *</label>
+                        <input type="text" name="Departamento" required placeholder="Ej: Lima, Arequipa..." style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box; font-family: inherit;" />
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; font-weight: bold; font-size: 0.85rem; margin-bottom: 5px; color: #475569;">Ambiente Base (Opcional)</label>
+                        <input type="text" name="NombreAmbiente" placeholder="Ej: Almacén de TI (Por defecto: Principal)" style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box; font-family: inherit;" />
+                    </div>
+                </div>
+
+            </div>
+
+            <div style="text-align: right; margin-top: 20px; border-top: 2px solid #f1f5f9; padding-top: 25px;">
+                <a href="@Url.Action("Clientes", "Admin")" style="text-decoration: none; color: #64748b; font-weight: bold; margin-right: 25px; font-size: 1rem;">Cancelar</a>
+                <button type="submit" style="background-color: #d97706; color: white; border: none; padding: 15px 35px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 1.05rem; transition: background 0.3s; box-shadow: 0 4px 6px rgba(217, 119, 6, 0.2);" onmouseover="this.style.backgroundColor='#b45309'" onmouseout="this.style.backgroundColor='#d97706'">
+                    💾 Guardar Cliente y Generar Accesos
+                </button>
+            </div>
+        </div>
+    </form>
+</div>

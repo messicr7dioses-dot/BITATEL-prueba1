@@ -1,8 +1,187 @@
-﻿
-@{ ViewBag.Title = "Contratos";
-    Layout = "~/Views/Shared/_LayoutAdmin.cshtml"; }
+﻿@model IEnumerable<BITATEL_prueba1.Controllers.AdminController.ContratoMaestroItem>
+@{
+    ViewBag.Title = "Contratos y Lotes";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
 
-<div style="background:white; padding:20px; border-radius:8px; border:1px solid #ddd;">
-    <h2>Contratos</h2>
-    <p>Esta vista está en construcción y lista para ser programada.</p>
+<style>
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-box {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        width: 450px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+
+    .stat-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        padding: 15px;
+        border-radius: 6px;
+        text-align: center;
+    }
+
+    .stat-title {
+        font-size: 0.8rem;
+        color: #64748b;
+        text-transform: uppercase;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .stat-value {
+        font-size: 1.3rem;
+        color: #1e293b;
+        font-weight: bold;
+    }
+</style>
+
+<div style="max-width: 1400px; margin: 0 auto; padding-bottom: 40px;">
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <h2 style="color: #333; margin: 0;">Contratos y Lotes de Producción</h2>
+            <p style="color: #666; margin-top: 5px;">Listado de contratos agrupados por lote de despacho.</p>
+        </div>
+        <a href="@Url.Action("RegistrarAlquiler", "Admin")" style="background-color: #10b981; color: white; text-decoration: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; display: flex; align-items: center; gap: 8px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+            Nuevo Anexo / Despacho
+        </a>
+    </div>
+
+    <div style="margin-bottom: 20px; max-width: 400px; position: relative;">
+        <svg style="position: absolute; left: 12px; top: 12px; color: #94a3b8;" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="txtBuscarUniversal" onkeyup="filtrarTablaUniversal()" placeholder="Buscar contrato o empresa..." style="width: 100%; padding: 10px 10px 10px 40px; border: 1px solid #cbd5e1; border-radius: 5px;">
+    </div>
+
+    <div style="background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow-x: auto; border: 1px solid #e5e7eb;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; white-space: nowrap;">
+            <thead style="background-color: #f8fafc; color: #475569; font-size: 0.9rem; border-bottom: 2px solid #e2e8f0;">
+                <tr>
+                    <th style="padding: 15px;">ID Contrato (Lote)</th>
+                    <th style="padding: 15px;">Empresa / RUC</th>
+                    <th style="padding: 15px; text-align: center;">F. Emisión</th>
+                    <th style="padding: 15px; text-align: center;">Volumen de Equipos</th>
+                    <th style="padding: 15px; text-align: center;">Estado Financiero</th>
+                    <th style="padding: 15px; text-align: center;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr class="item-row" style="border-bottom: 1px solid #f1f5f9; transition: background 0.2s; @(item.EquiposEnMora > 0 ? "background-color: #fef2f2;" : "")" onmouseover="this.style.backgroundColor='@(item.EquiposEnMora > 0 ? "#fee2e2" : "#f8fafc")'" onmouseout="this.style.backgroundColor='@(item.EquiposEnMora > 0 ? "#fef2f2" : "transparent")'">
+
+                        <td style="padding: 15px;">
+                            <span style="background: #e0e7ff; color: #3b82f6; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-family: monospace;">@item.IdContratoGenerado</span>
+                        </td>
+
+                        <td style="padding: 15px;">
+                            <div style="font-weight: bold; color: #1e293b;">@item.Empresa</div>
+                            <div style="color: #64748b; font-size: 0.85rem;">RUC: @item.Ruc</div>
+                        </td>
+
+                        <td style="padding: 15px; text-align: center; color: #475569;">@item.FechaDespacho</td>
+
+                        <td style="padding: 15px; text-align: center;">
+                            <span style="font-weight: bold; color: #1e293b;">@item.EquiposAlquilados Activos</span>
+                        </td>
+
+                        <td style="padding: 15px; text-align: center;">
+                            @if (item.EquiposEnMora > 0)
+                            {
+                                <span style="color: #dc2626; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                                    ⚠️ @item.EquiposEnMora en Mora
+                                </span>
+                            }
+                            else
+                            {
+                                <span style="color: #10b981; font-weight: bold;">✅ Al Día</span>
+                            }
+                        </td>
+
+                        <td style="padding: 15px; text-align: center;">
+                            <button onclick="abrirResumen('@item.IdContratoGenerado', '@item.Empresa', @item.EquiposAlquilados, @item.ValorTotalHardware, @item.EquiposEnMora, @item.MoraTotalAcumulada, @item.IdCliente)" style="background: white; color: #3b82f6; border: 1px solid #bfdbfe; padding: 6px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.backgroundColor='#eff6ff'">
+                                Ver Detalle ➔
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 </div>
+
+<!-- MODAL VISTA GENERAL DEL CONTRATO -->
+<div id="modalResumen" class="modal-overlay">
+    <div class="modal-box" onclick="event.stopPropagation()">
+        <h3 style="margin-top:0; color:#1e40af; border-bottom:1px solid #eee; padding-bottom:10px; display:flex; align-items:center; gap:8px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            Resumen del Contrato
+        </h3>
+
+        <div style="text-align: center; margin-bottom: 20px;">
+            <div id="mdlEmpresa" style="font-size: 1.2rem; font-weight: bold; color: #1e293b;">Empresa</div>
+            <div id="mdlContrato" style="color: #3b82f6; font-family: monospace; font-weight: bold; margin-top: 5px;">CTR-XXX</div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+            <div class="stat-box">
+                <div class="stat-title">Volumen</div>
+                <div class="stat-value" id="mdlVolumen">0 Equipos</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-title">Hardware Base</div>
+                <div class="stat-value" id="mdlValor" style="color: #10b981;">$ 0.00</div>
+            </div>
+            <div class="stat-box" style="background: #fef2f2; border-color: #fecaca;">
+                <div class="stat-title" style="color: #b91c1c;">Equipos en Mora</div>
+                <div class="stat-value" id="mdlEquiposMora" style="color: #dc2626;">0</div>
+            </div>
+            <div class="stat-box" style="background: #fef2f2; border-color: #fecaca;">
+                <div class="stat-title" style="color: #b91c1c;">Deuda Penalizada</div>
+                <div class="stat-value" id="mdlDeudaMora" style="color: #dc2626;">$ 0.00</div>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 25px;">
+            <button onclick="document.getElementById('modalResumen').style.display='none'" style="flex:1; padding: 12px; cursor:pointer; background:#f1f5f9; color:#475569; border:none; border-radius:5px; font-weight:bold;">Cerrar</button>
+            <a id="btnVerInventario" href="#" style="flex:2; text-align:center; padding: 12px; cursor:pointer; background:#3b82f6; color:white; border:none; border-radius:5px; font-weight:bold; text-decoration:none;">Ver Equipos del Cliente ➔</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    function filtrarTablaUniversal() {
+        var texto = document.getElementById("txtBuscarUniversal").value.toLowerCase();
+        document.querySelectorAll(".item-row").forEach(fila => {
+            fila.style.display = fila.textContent.toLowerCase().includes(texto) ? "" : "none";
+        });
+    }
+
+    function abrirResumen(contrato, empresa, volumen, valor, equiposMora, deudaMora, idCliente) {
+        document.getElementById('mdlContrato').innerText = contrato;
+        document.getElementById('mdlEmpresa').innerText = empresa;
+        document.getElementById('mdlVolumen').innerText = volumen + " Equipos";
+        document.getElementById('mdlValor').innerText = "$ " + valor.toFixed(2);
+        document.getElementById('mdlEquiposMora').innerText = equiposMora;
+        document.getElementById('mdlDeudaMora').innerText = "$ " + deudaMora.toFixed(2);
+
+        // El botón del modal lleva al inventario del cliente
+        document.getElementById('btnVerInventario').href = '@Url.Action("InventarioCliente", "Admin")?id=' + idCliente;
+
+        document.getElementById('modalResumen').style.display = 'flex';
+    }
+</script>

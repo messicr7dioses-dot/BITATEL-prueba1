@@ -128,6 +128,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\ActivoCliente.cs" />
+    <Compile Include="Models\DashboardAdminViewModel.cs" />
     <Compile Include="Models\ConexionBD.cs" />
     <Compile Include="Models\UbicacionViewModel.cs" />
     <Compile Include="Models\Usuario.cs" />
@@ -179,17 +180,26 @@
     <Content Include="Views\Cliente\Configuracion.cshtml" />
     <Content Include="Views\Cliente\Facturacion.cshtml" />
     <Content Include="Views\Cliente\Contratos.cshtml" />
-    <Content Include="Views\Cliente\Solicitudes.cshtml" />
     <Content Include="Views\Cliente\Ubicaciones.cshtml" />
     <Content Include="Views\Shared\_LayoutAdmin.cshtml" />
     <Content Include="Views\Admin\RegistrarAlquiler.cshtml" />
     <Content Include="Views\Admin\GestionarStock.cshtml" />
     <Content Include="Views\Admin\Usuarios.cshtml" />
-    <Content Include="Views\Admin\Solicitudes.cshtml" />
     <Content Include="Views\Admin\Contratos.cshtml" />
     <Content Include="Views\Admin\Ubicaciones.cshtml" />
     <Content Include="Views\Admin\Configuracion.cshtml" />
     <Content Include="Views\Admin\MiPerfil.cshtml" />
+    <Content Include="Views\Admin\NuevoCliente.cshtml" />
+    <Content Include="Views\Admin\Movimientos.cshtml" />
+    <Content Include="Views\Admin\InventarioCliente.cshtml" />
+    <Content Include="Views\Admin\Clientes.cshtml" />
+    <Content Include="Views\Admin\NuevoUsuario.cshtml" />
+    <Content Include="Views\Admin\SedesCliente.cshtml" />
+    <Content Include="Views\Admin\AmbientesSede.cshtml" />
+    <Content Include="Views\Admin\StockLocal.cshtml" />
+    <Content Include="Views\Admin\Cobranzas.cshtml" />
+    <Content Include="Views\Cliente\Deudas.cshtml" />
+    <Content Include="Views\Cliente\Ambientes.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

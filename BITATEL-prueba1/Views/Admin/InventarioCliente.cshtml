@@ -1,0 +1,469 @@
+﻿@model IEnumerable<BITATEL_prueba1.Controllers.AdminController.InventarioClienteItem>
+@using System.Linq
+@{
+    ViewBag.Title = "Centro de Operaciones de Activos";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+
+    var ubicacionesAgrupadas = Model
+        .GroupBy(x => x.Sede)
+        .ToDictionary(g => g.Key, g => g.Select(x => x.Ubicacion).Distinct().OrderBy(x => x).ToList());
+
+    var marcasUnicas = Model.Select(x => x.Marca).Distinct().OrderBy(x => x).ToList();
+    var contratosUnicos = Model.Select(x => x.Contrato).Distinct().OrderBy(x => x).ToList();
+    var estadosUnicos = Model.Select(x => x.EstadoFisico).Distinct().OrderBy(x => x).ToList(); // Nuevo Filtro
+}
+
+<style>
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-box {
+        background: white;
+        padding: 25px;
+        border-radius: 8px;
+        width: 400px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+
+    .mora-btn {
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+        .mora-btn:hover {
+            background: #fca5a5;
+            color: white;
+        }
+</style>
+
+<div style="max-width: 1600px; margin: 0 auto; padding-bottom: 40px;">
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+        <h2 style="color: #333; margin: 0;">Centro de Operaciones: <span style="color: #d97706;">@ViewBag.NombreCliente</span></h2>
+
+        <div style="display: flex; gap: 10px;">
+            <button onclick="togglePanel(event, 'panelFiltros')" style="background-color: #3b82f6; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer;">Filtros Avanzados</button>
+            <button onclick="togglePanel(event, 'panelColumnas')" style="background-color: #64748b; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer;">Columnas</button>
+            <a href="@Url.Action("Clientes", "Admin")" style="background-color: #f1f5f9; color: #475569; text-decoration: none; padding: 10px 15px; border-radius: 5px; font-weight: bold;">Volver</a>
+        </div>
+    </div>
+
+    <div id="panelColumnas" class="menu-flotante" style="display: none; background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+        <h4 style="margin: 0 0 15px 0;">Personalizar Vista de Columnas</h4>
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <label><input type="checkbox" checked onchange="ocultarColumna(3)"> Marca</label>
+            <label><input type="checkbox" checked onchange="ocultarColumna(4)"> Modelo</label>
+            <label><input type="checkbox" checked onchange="ocultarColumna(5)"> Nro. Serie</label>
+            <label><input type="checkbox" checked onchange="ocultarColumna(6)"> Sede Padre</label>
+            <label><input type="checkbox" checked onchange="ocultarColumna(7)"> Ambiente (Ubicación)</label>
+            <label><input type="checkbox" checked onchange="ocultarColumna(8)"> Estado Físico</label>
+            <label><input type="checkbox" checked onchange="ocultarColumna(9)"> Despacho</label>
+            <label><input type="checkbox" checked onchange="ocultarColumna(11)"> Costo / Cuota</label>
+            <label><input type="checkbox" checked onchange="ocultarColumna(13)"> Mora Acum.</label>
+            <label><input type="checkbox" checked onchange="ocultarColumna(14)"> Contrato</label>
+        </div>
+    </div>
+
+    <div id="panelFiltros" class="menu-flotante" style="display: none; background: white; border: 1px solid #3b82f6; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px;">
+            <div>
+                <strong style="display: block; margin-bottom: 8px; font-size: 0.9rem;">Sede y Ambientes:</strong>
+                <div style="max-height: 150px; overflow-y: auto; border: 1px solid #e2e8f0; padding: 10px; border-radius: 4px; background: #f8fafc;">
+                    @foreach (var grupo in ubicacionesAgrupadas)
+                    {
+                        <div style="color: #1e40af; font-weight: bold; font-size: 0.85rem; margin-top: 5px; margin-bottom: 3px; border-bottom: 1px solid #e2e8f0;">🏢 @grupo.Key</div>
+                        foreach (var ubi in grupo.Value)
+                        {
+                            <label style="display: block; margin-left: 15px; font-size: 0.85rem; color: #475569; cursor: pointer;">
+                                <input type="checkbox" class="flt-ubicacion" value="@ubi.ToLower()"> @ubi
+                            </label>
+                        }
+                    }
+                </div>
+            </div>
+
+            <div><strong style="display:block; margin-bottom:8px;">Marca:</strong><div style="max-height: 150px; overflow-y: auto; border: 1px solid #e2e8f0; padding: 10px;">@foreach (var m in marcasUnicas)
+            {<label style="display:block;"><input type="checkbox" class="flt-marca" value="@m.ToLower()"> @m</label>}</div></div>
+            <div><strong style="display:block; margin-bottom:8px;">Contrato (Lote):</strong><div style="max-height: 150px; overflow-y: auto; border: 1px solid #e2e8f0; padding: 10px;">@foreach (var c in contratosUnicos)
+            {<label style="display:block;"><input type="checkbox" class="flt-contrato" value="@c.ToLower()"> @c</label>}</div></div>
+            <div>
+                <strong style="display:block; margin-bottom:8px;">Estado Físico:</strong>
+                <div style="max-height: 150px; overflow-y: auto; border: 1px solid #e2e8f0; padding: 10px;">
+                    @foreach (var e in estadosUnicos)
+                    {<label style="display:block;"><input type="checkbox" class="flt-estado" value="@e.ToLower()"> @e</label>}
+                </div>
+            </div>
+            <div><strong style="display:block; margin-bottom:8px;">Estado Mora:</strong><div style="border: 1px solid #e2e8f0; padding: 10px;"><label style="display:block;"><input type="checkbox" class="flt-mora" value="al día"> AL DÍA</label><label style="display:block; color:#dc2626;"><input type="checkbox" class="flt-mora" value="vencido"> VENCIDO</label></div></div>
+        </div>
+        <div style="margin-top: 15px; text-align: right;">
+            <button onclick="limpiarFiltros()" style="background:#f1f5f9; border:none; padding:10px 20px; border-radius:5px; font-weight:bold; cursor:pointer;">Limpiar</button>
+            <button onclick="aplicarFiltros()" style="background:#d97706; color:white; border:none; padding:10px 30px; border-radius:5px; font-weight:bold; cursor:pointer;">Aplicar Filtros</button>
+        </div>
+    </div>
+
+    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px 25px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <button id="btnMover" disabled onclick="abrirModalTraslado()" style="opacity: 0.5; background-color: #10b981; color: white; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: not-allowed;">Traslado Físico</button>
+            <button id="btnReemplazo" disabled onclick="procesarGarantia()" style="opacity: 0.5; background-color: #6366f1; color: white; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: not-allowed;">Reemplazo (Garantía)</button>
+            <span id="txtSeleccion" style="color: #d97706; font-weight: bold;">0 sel.</span>
+        </div>
+        <div style="display: flex; gap: 10px; width: 400px; position:relative;">
+            <svg style="position: absolute; left: 12px; top: 12px; color: #94a3b8;" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="txtBuscarUniversal" onkeyup="filtrarTablaUniversal()" placeholder="Buscador Universal (Etiqueta, Serie)..." style="width: 100%; padding: 10px 10px 10px 40px; border: 1px solid #cbd5e1; border-radius: 5px;">
+        </div>
+    </div>
+
+    <div style="background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow-x: auto; overflow-y: auto; max-height: 60vh; width: 100%; border: 1px solid #e5e7eb;">
+        <table id="tablaInventario" style="width: 100%; border-collapse: collapse; text-align: left; white-space: nowrap;">
+            <thead style="position: sticky; top: 0; z-index: 10; background: #f9fafb;">
+                <tr style="color: #4b5563; font-size: 0.9rem; box-shadow: 0 2px 0 0 #e5e7eb;">
+                    <th style="padding: 15px; text-align: center;"><input type="checkbox" onchange="seleccionarTodos(this)"></th>
+                    <th style="padding: 15px;">Etiqueta ID</th>
+                    <th style="padding: 15px;">Categoría</th>
+                    <th style="padding: 15px;">Marca</th>
+                    <th style="padding: 15px;">Modelo</th>
+                    <th style="padding: 15px;">Nro. Serie</th>
+                    <th style="padding: 15px; border-left: 2px solid #e2e8f0;">Sede Padre</th>
+                    <th style="padding: 15px;">Ambiente (Ubicación)</th>
+                    <th style="padding: 15px; text-align: center;">Estado Físico</th>
+                    <th style="padding: 15px; background-color: #f9fafb;">F. Despacho</th>
+                    <th style="padding: 15px; background-color: #f9fafb;">F. Devolución</th>
+                    <th style="padding: 15px; text-align: right;">Costo / Cuota</th>
+                    <th style="padding: 15px; text-align: center;">Estado de Mora</th>
+                    <th style="padding: 15px; text-align: center;">Mora Acum.</th>
+                    <th style="padding: 15px; text-align: center;">Contrato</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="15" style="padding: 40px; text-align: center; color: #6b7280; font-style: italic;">No hay activos registrados.</td></tr>
+                }
+                else
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr class="item-row" style="border-bottom: 1px solid #f3f4f6; @(item.EstaVencido ? "background-color: #fef2f2;" : "")">
+                            <td style="padding: 15px; text-align: center;">
+                                <input type="checkbox" class="chk-item" value="@item.IdActivo" data-vencido="@item.EstaVencido.ToString().ToLower()" onchange="evaluarSeleccion()">
+                            </td>
+                            <td class="col-etiqueta" style="padding: 15px; font-weight: bold; color: #1e40af;">@item.Etiqueta</td>
+                            <td style="padding: 15px;">@item.Componente</td>
+                            <td class="col-marca" style="padding: 15px; font-weight: 500;">@item.Marca</td>
+                            <td class="col-modelo" style="padding: 15px;">@item.Modelo</td>
+                            <td style="padding: 15px; font-family: monospace;">@item.Serie</td>
+                            <td style="padding: 15px; border-left: 2px solid #f1f5f9; font-weight: bold; color: #475569;">@item.Sede</td>
+                            <td class="col-ubicacion" style="padding: 15px; color: #64748b;">@item.Ubicacion</td>
+
+                            <td class="col-estado" style="padding: 15px; text-align: center;">
+                                @if (item.EstadoFisico.ToUpper().Contains("AVERIAD") || item.EstadoFisico.ToUpper().Contains("DAÑAD"))
+                                {
+                                    <span style="background: #fef2f2; color: #dc2626; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; border: 1px solid #fecaca; animation: pulse 2s infinite;">⚠️ @item.EstadoFisico</span>
+                                }
+                                else
+                                {
+                                    <span style="background: #e0f2fe; color: #1d4ed8; padding: 3px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem;">@item.EstadoFisico</span>
+                                }
+                            </td>
+
+                            <td style="padding: 15px;">@item.FechaDespacho</td>
+                            <td style="padding: 15px; color:@(item.EstaVencido ? "#dc2626":"inherit")">@item.FechaDevolucion</td>
+                            <td style="padding: 15px; text-align: right;">
+                                <div style="font-weight: bold; color: #4b5563;">$ @item.CostoProducto.ToString("0.00")</div>
+                                <div style="color: #059669; font-size: 0.85rem; font-weight: bold;">$ @item.CuotaMensual.ToString("0.00") <span style="font-weight:normal; color:#888;">/m</span></div>
+                            </td>
+                            <td class="col-mora" style="padding: 15px; text-align: center;">
+                                @if (item.EstadoMora == "VENCIDO")
+                                {<span style="color: #dc2626; font-weight: bold;">VENCIDO</span> }
+                                else
+                                { <span style="color: #10b981; font-weight: bold;">AL DÍA</span>}
+                            </td>
+                            <td style="padding: 15px; text-align: center;">
+                                @if (item.DiasMora > 0)
+                                {
+                                    <button class="mora-btn" onclick="abrirDetalleMora('@item.Etiqueta', @item.DiasMora, @item.MultaDiaria, @item.TotalMora)">
+                                        $ @item.TotalMora.ToString("0.00")
+                                    </button>
+                                }
+                                else
+                                {
+                                    <span style="color: #94a3b8;">-</span>
+                                }
+                            </td>
+                            <td class="col-contrato" style="padding: 15px; text-align: center;"><span style="background: #e0e7ff; color: #3b82f6; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.85rem;">@item.Contrato</span></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="modalMora" class="modal-overlay">
+    <div class="modal-box" onclick="event.stopPropagation()">
+        <h3 style="margin-top:0; color:#dc2626; border-bottom:1px solid #fecaca; padding-bottom:10px;">Desglose de Penalidad</h3>
+        <p style="color:#666; font-size:0.9rem; margin-bottom: 20px;">Equipo: <strong id="mdlMoraEtiqueta" style="color: #1e293b;"></strong></p>
+
+        <div style="display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 5px;">
+            <span style="color: #64748b;">Días de Retraso:</span>
+            <strong id="mdlMoraDias" style="color: #1e293b;">0 días</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 5px;">
+            <span style="color: #64748b;">Multa Diaria Acordada:</span>
+            <strong id="mdlMoraMulta" style="color: #1e293b;">$ 0.00</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-top: 20px; background: #fef2f2; padding: 10px; border-radius: 5px; border: 1px solid #fecaca;">
+            <span style="color: #b91c1c; font-weight: bold;">Deuda Total Acumulada:</span>
+            <strong id="mdlMoraTotal" style="color: #dc2626; font-size: 1.2rem;">$ 0.00</strong>
+        </div>
+
+        <div style="text-align: right; margin-top: 20px;">
+            <button onclick="document.getElementById('modalMora').style.display='none'" style="padding: 10px 20px; cursor:pointer; background:#333; color:white; border:none; border-radius:4px; font-weight:bold;">Entendido</button>
+        </div>
+    </div>
+</div>
+
+<div id="modalTraslado" class="modal-overlay">
+    <div class="modal-box" onclick="event.stopPropagation()">
+        <h3 style="margin-top:0; color:#1e40af;">Traslado Físico</h3>
+        <p style="color:#666; font-size:0.9rem;">Seleccione la nueva ubicación destino.</p>
+        <select id="cboSedesModal" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; margin-bottom: 20px;"></select>
+        <div style="text-align: right;">
+            <button onclick="document.getElementById('modalTraslado').style.display='none'" style="padding: 8px 15px; cursor:pointer; background:#eee; border:none; border-radius:4px; margin-right:10px;">Cancelar</button>
+            <button onclick="confirmarTraslado()" style="padding: 8px 15px; cursor:pointer; background:#10b981; color:white; border:none; border-radius:4px; font-weight:bold;">Ejecutar Traslado</button>
+        </div>
+    </div>
+</div>
+
+<div id="modalGarantia" class="modal-overlay">
+    <div class="modal-box" onclick="event.stopPropagation()">
+        <h3 style="margin-top:0; color:#4f46e5; border-bottom: 1px solid #e5e7eb; padding-bottom:10px;">Reemplazo por Garantía (RMA)</h3>
+
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 0.85rem; color: #166534;">
+            ✅ <strong>Validación:</strong> Equipo al día y apto para reemplazo.
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; font-weight: bold; font-size: 0.85rem; color: #4b5563; margin-bottom: 5px;">1. Equipo de Reemplazo (Stock Disponible)</label>
+            <select id="cboEquipoNuevo" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; font-family: inherit; font-size: 0.9rem;">
+                <option value="">Cargando stock compatible...</option>
+            </select>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; font-weight: bold; font-size: 0.85rem; color: #4b5563; margin-bottom: 5px;">2. Motivo de la Falla Reportada</label>
+            <textarea id="txtMotivoGarantia" rows="3" placeholder="Ej: La pantalla no enciende, problemas de red..." style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; font-family: inherit; font-size: 0.9rem; box-sizing: border-box;"></textarea>
+        </div>
+
+        <div style="text-align: right;">
+            <button onclick="document.getElementById('modalGarantia').style.display='none'" style="padding: 10px 15px; cursor:pointer; background:#f1f5f9; color:#475569; border:none; border-radius:4px; font-weight:bold; margin-right:10px;">Cancelar</button>
+            <button onclick="confirmarGarantia()" style="padding: 10px 20px; cursor:pointer; background:#4f46e5; color:white; border:none; border-radius:4px; font-weight:bold;">Ejecutar Reemplazo</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('panelFiltros').addEventListener('click', e => e.stopPropagation());
+    document.getElementById('panelColumnas').addEventListener('click', e => e.stopPropagation());
+
+    function togglePanel(event, panelId) {
+        event.stopPropagation();
+        var panel = document.getElementById(panelId);
+        var isOpen = panel.style.display === "block";
+        document.getElementById('panelFiltros').style.display = 'none';
+        document.getElementById('panelColumnas').style.display = 'none';
+        if (!isOpen) panel.style.display = "block";
+    }
+
+    function ocultarColumna(colIndex) {
+        var table = document.getElementById("tablaInventario");
+        for (var i = 0; i < table.rows.length; i++) {
+            var cell = table.rows[i].cells[colIndex];
+            if (cell) cell.style.display = cell.style.display === "none" ? "" : "none";
+        }
+    }
+
+    function filtrarTablaUniversal() {
+        var texto = document.getElementById("txtBuscarUniversal").value.toLowerCase();
+        document.querySelectorAll(".item-row").forEach(fila => {
+            fila.style.display = fila.textContent.toLowerCase().includes(texto) ? "" : "none";
+            if (fila.style.display === "none") {
+                var chk = fila.querySelector(".chk-item");
+                if (chk) chk.checked = false;
+            }
+        });
+        evaluarSeleccion();
+    }
+
+    function obtenerValoresChecked(clase) { return Array.from(document.querySelectorAll(clase + ':checked')).map(chk => chk.value); }
+
+    function aplicarFiltros() {
+        var ubis = obtenerValoresChecked('.flt-ubicacion');
+        var marcas = obtenerValoresChecked('.flt-marca');
+        var contratos = obtenerValoresChecked('.flt-contrato');
+        var moras = obtenerValoresChecked('.flt-mora');
+        var estados = obtenerValoresChecked('.flt-estado'); // Filtro de estado añadido
+
+        document.querySelectorAll(".item-row").forEach(function(fila) {
+            var fUbi = fila.querySelector(".col-ubicacion").textContent.toLowerCase();
+            var fMarca = fila.querySelector(".col-marca").textContent.toLowerCase();
+            var fContrato = fila.querySelector(".col-contrato").textContent.toLowerCase();
+            var fMora = fila.querySelector(".col-mora").textContent.toLowerCase();
+            var fEstado = fila.querySelector(".col-estado") ? fila.querySelector(".col-estado").textContent.toLowerCase() : "";
+
+            var pUbi = ubis.length === 0 || ubis.some(u => fUbi.includes(u));
+            var pMarca = marcas.length === 0 || marcas.some(m => fMarca.includes(m));
+            var pCont = contratos.length === 0 || contratos.some(c => fContrato.includes(c));
+            var pMora = moras.length === 0 || moras.some(m => fMora.includes(m));
+            var pEstado = estados.length === 0 || estados.some(e => fEstado.includes(e));
+
+            if (pUbi && pMarca && pCont && pMora && pEstado) {
+                fila.style.display = "";
+            } else {
+                fila.style.display = "none";
+                var chk = fila.querySelector(".chk-item");
+                if(chk) chk.checked = false;
+            }
+        });
+        evaluarSeleccion();
+        document.getElementById('panelFiltros').style.display = 'none';
+    }
+
+    function limpiarFiltros() {
+        document.querySelectorAll('.menu-flotante input[type="checkbox"]').forEach(chk => chk.checked = false);
+        document.getElementById("txtBuscarUniversal").value = "";
+        aplicarFiltros();
+    }
+
+    function seleccionarTodos(chkPrincipal) {
+        var filas = document.querySelectorAll('.item-row');
+        filas.forEach(fila => {
+            if (fila.style.display !== "none") {
+                var chk = fila.querySelector('.chk-item');
+                if(chk) chk.checked = chkPrincipal.checked;
+            }
+        });
+        evaluarSeleccion();
+    }
+
+    function evaluarSeleccion() {
+        var cant = document.querySelectorAll('.chk-item:checked').length;
+        document.getElementById('txtSeleccion').innerText = cant + (cant === 1 ? " sel." : " sel.");
+
+        var btnMover = document.getElementById('btnMover');
+        var btnReemplazo = document.getElementById('btnReemplazo');
+
+        var disableMover = cant === 0;
+        btnMover.disabled = disableMover;
+        btnMover.style.opacity = disableMover ? "0.5" : "1";
+        btnMover.style.cursor = disableMover ? "not-allowed" : "pointer";
+
+        var disableGarantia = cant !== 1;
+        btnReemplazo.disabled = disableGarantia;
+        btnReemplazo.style.opacity = disableGarantia ? "0.5" : "1";
+        btnReemplazo.style.cursor = disableGarantia ? "not-allowed" : "pointer";
+    }
+
+    function abrirDetalleMora(etiqueta, dias, multa, total) {
+        document.getElementById('mdlMoraEtiqueta').innerText = etiqueta;
+        document.getElementById('mdlMoraDias').innerText = dias + " días";
+        document.getElementById('mdlMoraMulta').innerText = "$ " + multa.toFixed(2);
+        document.getElementById('mdlMoraTotal').innerText = "$ " + total.toFixed(2);
+        document.getElementById('modalMora').style.display = 'flex';
+    }
+
+    function obtenerIds() { return Array.from(document.querySelectorAll('.chk-item:checked')).map(chk => chk.value); }
+
+    function abrirModalTraslado() {
+        fetch('/Admin/ObtenerUbicacionesPorCliente?idCliente=@ViewBag.IdCliente')
+            .then(res => res.json())
+            .then(data => {
+                var select = document.getElementById('cboSedesModal');
+                select.innerHTML = '';
+                data.forEach(u => select.innerHTML += `<option value="${u.id}">${u.texto}</option>`);
+                document.getElementById('modalTraslado').style.display = 'flex';
+            });
+    }
+
+    function confirmarTraslado() {
+        var idDestino = document.getElementById('cboSedesModal').value;
+        fetch('/Admin/EjecutarTraslado', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids: obtenerIds(), idUbicacionDestino: idDestino })
+        }).then(res => res.json()).then(data => {
+            if(data.success) { alert("Traslado ejecutado con éxito."); location.reload(); } else alert("Error: " + data.message);
+        });
+    }
+
+    function procesarGarantia() {
+        var seleccionados = document.querySelectorAll('.chk-item:checked');
+        if (seleccionados.length !== 1) {
+            alert("⚠️ Por favor, seleccione exactamente UN equipo para procesar el reemplazo.");
+            return;
+        }
+
+        let chk = seleccionados[0];
+        if(chk.getAttribute('data-vencido') === 'true') {
+            alert("❌ SOLICITUD RECHAZADA:\n\nEl equipo seleccionado tiene el contrato caducado y deuda de mora pendiente.");
+            return;
+        }
+
+        var idViejo = chk.value;
+
+        fetch('/Admin/ObtenerStockParaReemplazo?idActivoMalo=' + idViejo)
+            .then(res => res.json())
+            .then(data => {
+                var select = document.getElementById('cboEquipoNuevo');
+                select.innerHTML = '';
+
+                if (data.length === 0) {
+                    select.innerHTML = `<option value="">❌ NO HAY STOCK COMPATIBLE EN ALMACÉN</option>`;
+                    document.getElementById('cboEquipoNuevo').disabled = true;
+                } else {
+                    data.forEach(u => select.innerHTML += `<option value="${u.id}">${u.texto}</option>`);
+                    document.getElementById('cboEquipoNuevo').disabled = false;
+                }
+
+                document.getElementById('txtMotivoGarantia').value = '';
+                document.getElementById('modalGarantia').style.display = 'flex';
+            });
+    }
+
+    function confirmarGarantia() {
+        var idViejo = document.querySelectorAll('.chk-item:checked')[0].value;
+        var idNuevo = document.getElementById('cboEquipoNuevo').value;
+        var motivo = document.getElementById('txtMotivoGarantia').value;
+
+        if (!idNuevo) { alert("No hay equipo de reemplazo seleccionado."); return; }
+        if (!motivo) { alert("Debe ingresar el motivo de la falla."); return; }
+
+        fetch('/Admin/EjecutarGarantia', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idActivoViejo: idViejo, idActivoNuevo: idNuevo, motivo: motivo })
+        }).then(res => res.json()).then(data => {
+            if(data.success) {
+                alert("✅ Reemplazo ejecutado.\nEl equipo nuevo fue asignado al contrato y el averiado fue dado de baja.");
+                location.reload();
+            } else {
+                alert("Error: " + data.message);
+            }
+        });
+    }
+</script>

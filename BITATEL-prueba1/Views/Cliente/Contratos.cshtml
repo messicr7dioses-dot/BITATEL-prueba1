@@ -1,83 +1,132 @@
-﻿@model IEnumerable<dynamic>
-
+﻿@model IEnumerable<BITATEL_prueba1.Controllers.ClienteController.ContratoClienteItem>
 @{
-    ViewBag.Title = "Contratos";
+    ViewBag.Title = "Mis Contratos";
     Layout = "~/Views/Shared/_LayoutCliente.cshtml";
 }
 
 <style>
-    .page-title {
-        margin-bottom: 25px;
-        color: #1f2937;
-    }
-
-    .table-container {
-        background: white;
-        border-radius: 8px;
-        border: 1px solid #e5e7eb;
-        overflow: hidden;
-    }
-
-    .data-table {
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
         width: 100%;
-        border-collapse: collapse;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
     }
 
-        .data-table th {
-            background: #f9fafb;
-            padding: 14px 20px;
-            text-align: left;
-            font-size: 0.85rem;
-            color: #6b7280;
-            text-transform: uppercase;
-        }
+    .modal-box {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        width: 450px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
 
-        .data-table td {
-            padding: 16px 20px;
-            border-bottom: 1px solid #f3f4f6;
-            color: #374151;
-        }
+    .stat-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        padding: 15px;
+        border-radius: 6px;
+        text-align: center;
+    }
 
-    .badge-estado {
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 600;
+    .stat-title {
+        font-size: 0.8rem;
+        color: #64748b;
+        text-transform: uppercase;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .stat-value {
+        font-size: 1.3rem;
+        color: #1e293b;
+        font-weight: bold;
     }
 </style>
 
-<h2 class="page-title">Contratos de Servicio</h2>
+<div style="max-width: 1400px; margin: 0 auto; padding-bottom: 40px;">
 
-<div class="table-container">
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th>N° Contrato</th>
-                <th>Inicio</th>
-                <th>Vencimiento</th>
-                <th>Activo</th>
-                <th>Estado</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model)
-            {
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <h2 style="color: #333; margin: 0;">Mis Contratos de Servicio</h2>
+            <p style="color: #666; margin-top: 5px;">Listado de lotes de hardware alquilados y en producción.</p>
+        </div>
+    </div>
+
+    <div style="background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow-x: auto; border: 1px solid #e5e7eb;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; white-space: nowrap;">
+            <thead style="background-color: #f8fafc; color: #475569; font-size: 0.9rem; border-bottom: 2px solid #e2e8f0;">
                 <tr>
-                    <td style="font-weight: 600;">@item.Numero</td>
-                    <td>@item.Inicio</td>
-                    <td>@item.Fin</td>
-                    <td>@item.Activo</td>
-                    <td>
-                        <span class="badge-estado" style="background:@(item.Estado == "Vigente" ? "#d1fae5" : "#fee2e2"); color:@(item.Estado == "Vigente" ? "#065f46" : "#b91c1c");">
-                            @item.Estado
-                        </span>
-                    </td>
+                    <th style="padding: 15px;">ID Contrato (Lote)</th>
+                    <th style="padding: 15px; text-align: center;">F. Emisión</th>
+                    <th style="padding: 15px; text-align: center;">Volumen de Equipos</th>
+                    <th style="padding: 15px; text-align: center;">Estado Financiero</th>
+                    <th style="padding: 15px; text-align: center;">Acciones</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="5" style="padding: 40px; text-align: center; color: #6b7280; font-style: italic;">No tienes contratos activos.</td></tr>
+                }
+                @foreach (var item in Model)
+                {
+                    <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.2s; @(item.EquiposEnMora > 0 ? "background-color: #fef2f2;" : "")">
+                        <td style="padding: 15px;"><span style="background: #e0e7ff; color: #3b82f6; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-family: monospace;">@item.IdContratoGenerado</span></td>
+                        <td style="padding: 15px; text-align: center; color: #475569;">@item.FechaDespacho</td>
+                        <td style="padding: 15px; text-align: center;"><span style="font-weight: bold; color: #1e293b;">@item.EquiposAlquilados Activos</span></td>
+                        <td style="padding: 15px; text-align: center;">
+                            @if (item.EquiposEnMora > 0)
+                            {<span style="color: #dc2626; font-weight: bold;">⚠️ @item.EquiposEnMora en Mora</span> }
+                        else
+                        { <span style="color: #10b981; font-weight: bold;">✅ Al Día</span>}
+                        </td>
+                        <td style="padding: 15px; text-align: center;">
+                            <button onclick="abrirResumen('@item.IdContratoGenerado', @item.EquiposAlquilados, @item.ValorTotalHardware, @item.EquiposEnMora, @item.MoraTotalAcumulada)" style="background: white; color: #3b82f6; border: 1px solid #bfdbfe; padding: 6px 15px; border-radius: 4px; font-weight: bold; cursor: pointer;">
+                                Ver Detalle ➔
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 </div>
 
-<div style="margin-top: 20px; padding: 20px; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; color: #0369a1; font-size: 0.9rem;">
-    <strong>ℹ️ Política de Garantías:</strong> Recuerda que para solicitar un reemplazo técnico, el activo debe estar bajo contrato vigente y presentar estados como: Dañado, Averiado, Obsoleto o Falla Crítica.
+<div id="modalResumen" class="modal-overlay">
+    <div class="modal-box" onclick="event.stopPropagation()">
+        <h3 style="margin-top:0; color:#1e40af; border-bottom:1px solid #eee; padding-bottom:10px;">Resumen del Contrato</h3>
+
+        <div style="text-align: center; margin-bottom: 20px;">
+            <div id="mdlContrato" style="color: #3b82f6; font-family: monospace; font-size: 1.2rem; font-weight: bold; margin-top: 5px;">CTR-XXX</div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+            <div class="stat-box"><div class="stat-title">Volumen</div><div class="stat-value" id="mdlVolumen">0 Equipos</div></div>
+            <div class="stat-box"><div class="stat-title">Hardware Base</div><div class="stat-value" id="mdlValor" style="color: #10b981;">$ 0.00</div></div>
+            <div class="stat-box" style="background: #fef2f2; border-color: #fecaca;"><div class="stat-title" style="color: #b91c1c;">Equipos en Mora</div><div class="stat-value" id="mdlEquiposMora" style="color: #dc2626;">0</div></div>
+            <div class="stat-box" style="background: #fef2f2; border-color: #fecaca;"><div class="stat-title" style="color: #b91c1c;">Deuda Penalizada</div><div class="stat-value" id="mdlDeudaMora" style="color: #dc2626;">$ 0.00</div></div>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 25px;">
+            <button onclick="document.getElementById('modalResumen').style.display='none'" style="flex:1; padding: 12px; cursor:pointer; background:#f1f5f9; color:#475569; border:none; border-radius:5px; font-weight:bold;">Cerrar</button>
+            <a href="@Url.Action("MisActivos", "Cliente")" style="flex:2; text-align:center; padding: 12px; cursor:pointer; background:#3b82f6; color:white; border:none; border-radius:5px; font-weight:bold; text-decoration:none;">Ver Mis Equipos ➔</a>
+        </div>
+    </div>
 </div>
+
+<script>
+    function abrirResumen(contrato, volumen, valor, equiposMora, deudaMora) {
+        document.getElementById('mdlContrato').innerText = contrato;
+        document.getElementById('mdlVolumen').innerText = volumen + " Equipos";
+        document.getElementById('mdlValor').innerText = "$ " + valor.toFixed(2);
+        document.getElementById('mdlEquiposMora').innerText = equiposMora;
+        document.getElementById('mdlDeudaMora').innerText = "$ " + deudaMora.toFixed(2);
+        document.getElementById('modalResumen').style.display = 'flex';
+    }
+</script>

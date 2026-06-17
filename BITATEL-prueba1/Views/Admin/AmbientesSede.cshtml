@@ -1,0 +1,204 @@
+﻿@model IEnumerable<BITATEL_prueba1.Controllers.AdminController.AmbienteItem>
+@{
+    ViewBag.Title = "Gestión de Ambientes";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<style>
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-box {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        width: 450px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #4b5563;
+            font-size: 0.9rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 5px;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+</style>
+
+<div style="max-width: 1400px; margin: 0 auto; padding-bottom: 40px;">
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <h2 style="color: #333; margin: 0;">Ambientes: <span style="color: #10b981;">@ViewBag.NombreSede</span></h2>
+            <p style="color: #666; margin-top: 5px;">Edite o añada cuartos, pisos u oficinas para esta sede específica.</p>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <button onclick="document.getElementById('modalAmbiente').style.display='flex'; document.getElementById('hdnIdUbi').value='0'; document.getElementById('txtNomAmbiente').value=''; document.getElementById('txtTipoAmbiente').value='';" style="background-color: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                + Nuevo Ambiente
+            </button>
+            <a href="@Url.Action("SedesCliente", "Admin", new { id = ViewBag.IdClientePadre })" style="background-color: #f1f5f9; color: #475569; text-decoration: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; display: flex; align-items: center; gap: 8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                Volver a la Sede
+            </a>
+        </div>
+    </div>
+
+    <div style="margin-bottom: 20px; max-width: 400px; position: relative;">
+        <svg style="position: absolute; left: 12px; top: 12px; color: #94a3b8;" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="txtBuscarUniversal" onkeyup="filtrarTablaUniversal()" placeholder="Buscar por nombre o tipo..." style="width: 100%; padding: 10px 10px 10px 40px; border: 1px solid #cbd5e1; border-radius: 5px; font-family: inherit;">
+    </div>
+
+    <div style="background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow-x: auto; width: 100%; border: 1px solid #e5e7eb;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; white-space: nowrap;">
+            <thead style="position: sticky; top: 0; background: white; z-index: 10;">
+                <tr style="background-color: #f9fafb; color: #4b5563; font-size: 0.9rem;">
+                    <th style="padding: 15px; border-bottom: 2px solid #e5e7eb;">Nombre del Ambiente (Piso/Sala)</th>
+                    <th style="padding: 15px; border-bottom: 2px solid #e5e7eb;">Tipo de Ambiente</th>
+                    <th style="padding: 15px; text-align: center; border-bottom: 2px solid #e5e7eb;">Equipos Operando Aquí</th>
+                    <th style="padding: 15px; text-align: center; border-bottom: 2px solid #e5e7eb;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr class="item-row"><td colspan="4" style="padding: 40px; text-align: center; color: #6b7280; font-style: italic;">No hay ambientes registrados para esta sede. Cree uno para poder enviar equipos.</td></tr>
+                }
+                else
+                {
+                    foreach (var u in Model)
+                    {
+                        <tr class="item-row" style="border-bottom: 1px solid #f3f4f6; transition: background 0.2s;" onmouseover="this.style.backgroundColor='#f8fafc'" onmouseout="this.style.backgroundColor='transparent'">
+
+                            <td style="padding: 15px; font-weight: bold; color: #1e40af;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 5px; color:#94a3b8;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+                                @u.NombreEspecifico
+                            </td>
+
+                            <td style="padding: 15px; color: #64748b;">@u.TipoAmbiente</td>
+
+                            <td style="padding: 15px; text-align: center;">
+                                @if (u.TotalEquiposFisicos > 0)
+                                {
+                                    <span style="background: #dcfce7; color: #16a34a; padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 0.85rem; border: 1px solid #bbf7d0;">
+                                        @u.TotalEquiposFisicos Equipos Instalados
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span style="color: #94a3b8; font-size: 0.85rem; font-style: italic;">Vacío</span>
+                                }
+                            </td>
+
+                            <td style="padding: 15px; text-align: center; gap: 10px; display: flex; justify-content: center;">
+                                <button onclick="abrirEdicion(@u.IdUbicacion, '@u.NombreEspecifico.Replace("'","\\'")', '@u.TipoAmbiente.Replace("'","\\'")')" style="background: #e0e7ff; color: #3b82f6; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer;">Modificar</button>
+
+                                <button onclick="eliminarAmbiente(@u.IdUbicacion)" style="background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer;">Borrar</button>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="modalAmbiente" class="modal-overlay">
+    <div class="modal-box">
+        <h3 id="modalTitle" style="margin-top:0; color:#1e40af; border-bottom:1px solid #eee; padding-bottom:10px;">Gestión de Ambiente</h3>
+
+        <input type="hidden" id="hdnIdUbi" value="0" />
+
+        <div class="form-group">
+            <label>1. Nombre del Ambiente *</label>
+            <input type="text" id="txtNomAmbiente" placeholder="Ej: Laboratorio 402, Piso 5 Ventas...">
+            <small style="color: #888;">Nota: Modificar este nombre actualizará las pantallas de inventario automáticamente.</small>
+        </div>
+        <div class="form-group">
+            <label>2. Categoría del Ambiente (Opcional)</label>
+            <input type="text" id="txtTipoAmbiente" placeholder="Ej: Laboratorio, Oficina, Datacenter...">
+        </div>
+
+        <div style="text-align: right; margin-top: 25px;">
+            <button onclick="document.getElementById('modalAmbiente').style.display='none'" style="padding: 10px 15px; cursor:pointer; background:#f1f5f9; color:#475569; border:none; border-radius:5px; font-weight:bold; margin-right:10px;">Cancelar</button>
+            <button onclick="guardarCambios()" style="padding: 10px 20px; cursor:pointer; background:#10b981; color:white; border:none; border-radius:5px; font-weight:bold;">Guardar Ambiente</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // BUSCADOR UNIVERSAL
+    function filtrarTablaUniversal() {
+        var texto = document.getElementById("txtBuscarUniversal").value.toLowerCase();
+        document.querySelectorAll(".item-row").forEach(fila => {
+            fila.style.display = fila.textContent.toLowerCase().includes(texto) ? "" : "none";
+        });
+    }
+
+    // MODAL DE EDICIÓN
+    function abrirEdicion(id, nombre, tipo) {
+        document.getElementById('hdnIdUbi').value = id;
+        document.getElementById('txtNomAmbiente').value = nombre;
+        document.getElementById('txtTipoAmbiente').value = tipo;
+        document.getElementById('modalTitle').innerText = "Modificar Ambiente (Piso/Área)";
+        document.getElementById('modalAmbiente').style.display = 'flex';
+    }
+
+    // GUARDAR (CREAR O EDITAR)
+    function guardarCambios() {
+        var idSedePadre = @ViewBag.IdSede;
+        var idUbi = parseInt(document.getElementById('hdnIdUbi').value);
+        var nom = document.getElementById('txtNomAmbiente').value;
+        var tipo = document.getElementById('txtTipoAmbiente').value;
+
+        if (!nom) { alert("El nombre del ambiente es obligatorio."); return; }
+
+        var url = idUbi === 0 ? '/Admin/GuardarAmbiente' : '/Admin/EditarAmbiente';
+        var payload = idUbi === 0
+            ? { idSede: idSedePadre, nombreEspecifico: nom, tipoAmbiente: tipo }
+            : { idUbicacion: idUbi, nombreEspecifico: nom, tipoAmbiente: tipo };
+
+        fetch(url, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        }).then(res => res.json()).then(data => {
+            if(data.success) { location.reload(); } else { alert("Error: " + data.message); }
+        });
+    }
+
+    // ELIMINAR CON VALIDACIÓN DE INTEGRIDAD
+    function eliminarAmbiente(idUbi) {
+        if(confirm("¿Está seguro de eliminar este Ambiente? Esta acción es irreversible.")) {
+            fetch('/Admin/EliminarAmbiente', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ idUbicacion: idUbi })
+            }).then(res => res.json()).then(data => {
+                if(data.success) { location.reload(); } else { alert("❌ OPERACIÓN RECHAZADA:\n\n" + data.message); }
+            });
+        }
+    }
+</script>

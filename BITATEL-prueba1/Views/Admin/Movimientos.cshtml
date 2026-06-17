@@ -1,0 +1,220 @@
+﻿@model IEnumerable<BITATEL_prueba1.Controllers.AdminController.MovimientoItem>
+@{
+    ViewBag.Title = ViewBag.Titulo;
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    bool esGarantia = ViewBag.EsGarantia != null && (bool)ViewBag.EsGarantia;
+
+    // Extraemos clientes únicos para el filtro
+    var clientesUnicos = Model.Select(x => x.Cliente).Distinct().OrderBy(x => x).ToList();
+}
+
+<style>
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-box {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        width: 450px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+
+    .det-label {
+        font-size: 0.85rem;
+        color: #64748b;
+        font-weight: bold;
+        margin-bottom: 3px;
+        display: block;
+        text-transform: uppercase;
+    }
+
+    .det-value {
+        font-size: 1rem;
+        color: #1e293b;
+        margin-bottom: 15px;
+        font-weight: 500;
+        background: #f8fafc;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #e2e8f0;
+    }
+</style>
+
+<div style="max-width: 1400px; margin: 0 auto; padding-bottom: 40px;">
+
+    <div style="margin-bottom: 20px;">
+        <h2 style="color: #333; margin: 0;">@ViewBag.Titulo</h2>
+        <p style="color: #666; margin-top: 5px;">@(esGarantia ? "Registro de equipos averiados y tickets de reemplazo (RMA)." : "Registro de despachos y traslados internos de activos.")</p>
+    </div>
+
+    <!-- PANEL DE FILTROS Y BÚSQUEDA -->
+    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 20px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+
+        <div style="width: 250px;">
+            <select id="cboClienteFiltro" onchange="aplicarFiltros()" style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 5px; font-size: 0.95rem; font-family: inherit; background-color: #f8fafc; cursor: pointer;">
+                <option value="">Todos los Clientes</option>
+                @foreach (var cli in clientesUnicos)
+                {
+                    <option value="@cli">@cli</option>
+                }
+            </select>
+        </div>
+
+        <div style="flex: 1; position: relative;">
+            <svg style="position: absolute; left: 12px; top: 14px; color: #94a3b8;" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="txtBuscarUniversal" onkeypress="if(event.keyCode==13) aplicarFiltros()" placeholder="Buscar etiqueta, equipo, ubicación o responsable (Enter)..." style="width: 100%; padding: 12px 12px 12px 40px; border: 1px solid #cbd5e1; border-radius: 5px; font-size: 0.95rem; font-family: inherit;">
+        </div>
+
+        <button onclick="aplicarFiltros()" style="background-color: #333; color: white; border: none; padding: 12px 25px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 0.95rem;">
+            Buscar
+        </button>
+    </div>
+
+    <!-- TABLA PRINCIPAL -->
+    <div style="background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow-x: auto; width: 100%; border: 1px solid #e5e7eb; max-height: 65vh;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; white-space: nowrap;">
+            <thead style="position: sticky; top: 0; background: white; z-index: 10;">
+                <tr style="background-color: #f9fafb; color: #4b5563; font-size: 0.9rem; box-shadow: 0 2px 0 0 #e5e7eb;">
+                    <th style="padding: 15px;">Fecha y Hora</th>
+                    <th style="padding: 15px;">Cliente</th>
+                    <th style="padding: 15px;">Etiqueta ID</th>
+                    <th style="padding: 15px;">Equipo</th>
+                    <th style="padding: 15px;">Ubicación @(esGarantia ? "Reportada" : "Destino")</th>
+                    <th style="padding: 15px;">Operador</th>
+                    <th style="padding: 15px; text-align: center;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr class="no-data-row"><td colspan="7" style="padding: 40px; text-align: center; color: #6b7280; font-style: italic;">No hay registros en esta bitácora.</td></tr>
+                }
+                else
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr class="item-row" style="border-bottom: 1px solid #f3f4f6; transition: background 0.2s;" onmouseover="this.style.backgroundColor='#f8fafc'" onmouseout="this.style.backgroundColor='transparent'">
+                            <td style="padding: 15px; color: #4b5563; font-weight: 500;">@item.Fecha</td>
+                            <td class="col-cliente" style="padding: 15px; font-weight: bold; color: #1e293b;">@item.Cliente</td>
+                            <td style="padding: 15px; font-weight: bold; color: #1e40af;">@item.Etiqueta</td>
+                            <td style="padding: 15px; color: #475569;">@item.Equipo</td>
+                            <td style="padding: 15px; color: #64748b;">@(esGarantia ? item.Origen : item.Destino)</td>
+                            <td style="padding: 15px; color: #475569;">@item.Usuario</td>
+                            <td style="padding: 15px; text-align: center;">
+                                <button onclick="verDetalle('@item.Etiqueta', '@item.Equipo', '@item.Origen', '@item.Destino', '@item.Motivo', '@item.Observacion.Replace("'","\\'")', '@item.Usuario', '@item.Fecha')" style="background: white; color: #3b82f6; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.borderColor='#3b82f6'; this.style.backgroundColor='#eff6ff';" onmouseout="this.style.borderColor='#cbd5e1'; this.style.backgroundColor='white';">
+                                    Ver Detalle ➔
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- MODAL DE DETALLE DINÁMICO -->
+<div id="modalDetalle" class="modal-overlay">
+    <div class="modal-box">
+        <h3 style="margin-top:0; color:#1e40af; border-bottom:1px solid #eee; padding-bottom:10px; display:flex; align-items:center; gap:8px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            @(esGarantia ? "Detalle del Ticket de Garantía" : "Detalle de Trazabilidad Física")
+        </h3>
+
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+            <div style="flex:1;"><span class="det-label">Etiqueta Afectada</span><div class="det-value" id="mdlEtiqueta" style="color:#d97706; font-weight:bold;"></div></div>
+            <div style="flex:1;"><span class="det-label">Fecha del Suceso</span><div class="det-value" id="mdlFecha"></div></div>
+        </div>
+
+        <span class="det-label">Equipo Técnico</span>
+        <div class="det-value" id="mdlEquipo"></div>
+
+        @if (esGarantia)
+        {
+            <span class="det-label">Ubicación donde falló</span>
+            <div class="det-value" id="mdlOrigen"></div>
+
+            <span class="det-label">Motivo de Falla Reportada</span>
+            <div class="det-value" id="mdlObservacion" style="border-color: #fecaca; background: #fef2f2; color: #b91c1c;"></div>
+
+            <span class="det-label">Equipo de Reemplazo (Nuevo Activo)</span>
+            <div class="det-value" id="mdlReemplazoNuevo" style="border-color: #bbf7d0; background: #f0fdf4; color: #166534; font-weight: bold;"></div>
+        }
+        else
+        {
+            <div style="display: flex; gap: 10px;">
+                <div style="flex:1;">
+                    <span class="det-label">Ambiente Anterior</span>
+                    <div class="det-value" id="mdlOrigen" style="color: #64748b;"></div>
+                </div>
+                <div style="display: flex; align-items: center; padding-bottom:15px; color:#cbd5e1;">➔</div>
+                <div style="flex:1;">
+                    <span class="det-label">Nuevo Destino</span>
+                    <div class="det-value" id="mdlDestino" style="color: #10b981; font-weight:bold; border-color:#a7f3d0; background:#f0fdf4;"></div>
+                </div>
+            </div>
+        }
+
+        <span class="det-label">Operador Responsable</span>
+        <div class="det-value" id="mdlUsuario" style="margin-bottom:0;"></div>
+
+        <div style="text-align: right; margin-top: 25px;">
+            <button onclick="document.getElementById('modalDetalle').style.display='none'" style="padding: 10px 25px; cursor:pointer; background:#333; color:white; border:none; border-radius:5px; font-weight:bold;">Cerrar Panel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Buscador con botón y Enter
+    function aplicarFiltros() {
+        var texto = document.getElementById("txtBuscarUniversal").value.toLowerCase();
+        var cliente = document.getElementById("cboClienteFiltro").value;
+
+        document.querySelectorAll(".item-row").forEach(fila => {
+            var fTexto = fila.textContent.toLowerCase();
+            var fCliente = fila.querySelector(".col-cliente").textContent;
+
+            var pasaTexto = fTexto.includes(texto);
+            var pasaCliente = cliente === "" || fCliente === cliente;
+
+            fila.style.display = (pasaTexto && pasaCliente) ? "" : "none";
+        });
+    }
+
+    // Modal Dinámico
+    function verDetalle(etiqueta, equipo, origen, destino, motivo, observacion, usuario, fecha) {
+        document.getElementById('mdlEtiqueta').innerText = etiqueta;
+        document.getElementById('mdlEquipo').innerText = equipo;
+        document.getElementById('mdlOrigen').innerText = origen;
+
+        // Lógica de separación de texto para Garantías
+        var textoObservacion = observacion ? observacion : motivo;
+        var equipoReemplazo = "No especificado";
+
+        if (textoObservacion.includes("| REEMPLAZO:")) {
+            var partes = textoObservacion.split("| REEMPLAZO:");
+            textoObservacion = partes[0].trim();
+            equipoReemplazo = partes[1].trim();
+        }
+
+        if (document.getElementById('mdlDestino')) document.getElementById('mdlDestino').innerText = destino;
+        if (document.getElementById('mdlObservacion')) document.getElementById('mdlObservacion').innerText = textoObservacion;
+        if (document.getElementById('mdlReemplazoNuevo')) document.getElementById('mdlReemplazoNuevo').innerText = equipoReemplazo;
+
+        document.getElementById('mdlUsuario').innerText = usuario;
+        document.getElementById('mdlFecha').innerText = fecha;
+
+        document.getElementById('modalDetalle').style.display = 'flex';
+    }
+</script>

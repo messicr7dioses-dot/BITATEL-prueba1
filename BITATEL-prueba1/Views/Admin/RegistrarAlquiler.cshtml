@@ -1,8 +1,337 @@
-﻿
-@{ ViewBag.Title = "Registrar Alquiler";
-    Layout = "~/Views/Shared/_LayoutAdmin.cshtml"; }
+﻿@{
+    ViewBag.Title = "Registrar Alquiler Múltiple";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
 
-<div style="background:white; padding:20px; border-radius:8px; border:1px solid #ddd;">
-    <h2>Registrar Alquiler</h2>
-    <p>Esta vista está en construcción y lista para ser programada.</p>
+<div style="max-width: 1100px; margin: 0 auto; padding-bottom: 40px;">
+    <h2 style="color: #333; margin-bottom: 20px;">Despacho Masivo y Registro de Alquiler</h2>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
+
+        <div style="background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); padding: 25px; border-top: 5px solid #d97706; height: fit-content;">
+            <h3 style="margin-top:0; color:#444; border-bottom: 1px solid #eee; padding-bottom: 10px;">Parámetros de Asignación</h3>
+
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                <div>
+                    <label style="display: block; margin-bottom: 5px; color: #555; font-weight: bold;">1. Cliente de Destino *</label>
+                    @Html.DropDownList("IdCliente", (IEnumerable<SelectListItem>)ViewBag.ListaClientes, "Seleccione un cliente...", new { @class = "form-control", id = "cboCliente", onchange = "cambioCliente()", style = "width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;" })
+                </div>
+
+                <div>
+                    <label style="display: block; margin-bottom: 5px; color: #555; font-weight: bold;">2. Sede Destino *</label>
+                    <select id="cboUbicacion" class="form-control" disabled style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; background-color: #f9fafb;">
+                        <option value="">Esperando selección de cliente...</option>
+                    </select>
+                </div>
+
+                <div style="display: flex; gap: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+                    <div style="flex: 1;">
+                        <label style="display: block; margin-bottom: 5px; color: #555; font-weight: bold;">Fecha Inicio *</label>
+                        <input type="date" id="txtFechaIngreso" class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;" />
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="display: block; margin-bottom: 5px; color: #555; font-weight: bold;">Fecha Vencimiento *</label>
+                        <input type="date" id="txtFechaVencimiento" class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;" />
+                    </div>
+                </div>
+
+                <h3 style="margin-top:15px; color:#444; border-bottom: 1px solid #eee; padding-bottom: 5px; font-size: 1.1rem;">Selección Manual de Hardware</h3>
+
+                <div style="display: flex; gap: 15px;">
+                    <div style="flex: 1;">
+                        <label style="display: block; margin-bottom: 5px; color: #555; font-weight: bold;">Categoría</label>
+                        @Html.DropDownList("IdCategoria", (IEnumerable<SelectListItem>)ViewBag.ListaCategorias, "Seleccione...", new { @class = "form-control", id = "cboCategoria", onchange = "cargarMarcasYPrecio()", style = "width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;" })
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="display: block; margin-bottom: 5px; color: #555; font-weight: bold;">Marca</label>
+                        <select id="cboMarca" class="form-control" onchange="cargarEquipos()" disabled style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; background-color: #f9fafb;">
+                            <option value="">Esperando...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label style="display: block; margin-bottom: 5px; color: #555; font-weight: bold;">Equipo Específico *</label>
+                    <select id="cboActivo" class="form-control" disabled style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; background-color: #f9fafb;">
+                        <option value="">Esperando selección...</option>
+                    </select>
+                </div>
+
+                <div style="display: flex; gap: 15px;">
+                    <div style="flex: 1;">
+                        <label style="display: block; margin-bottom: 5px; color: #555; font-weight: bold;">Costo Pactado (USD)</label>
+                        <input type="number" step="0.01" id="txtCostoPactado" class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;" />
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="display: block; margin-bottom: 5px; color: #555; font-weight: bold;">Multa Diaria (USD)</label>
+                        <input type="number" step="0.01" id="txtMultaDiaria" value="1.00" class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;" />
+                    </div>
+                </div>
+
+                <div style="margin-top: 10px;">
+                    <button type="button" onclick="agregarAlCarrito()" style="width:100%; background-color: #333; color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.95rem;">
+                        ➕ Añadir Activo a la Lista
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div style="background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); padding: 25px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+                <h3 style="margin-top:0; color:#444; border-bottom: 1px solid #eee; padding-bottom: 10px;">Lote de Despacho Actual</h3>
+
+                <table style="width: 100%; border-collapse: collapse; margin-top: 10px; text-align: left;" id="tablaCarrito">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #ddd; color: #555; font-size: 0.9rem;">
+                            <th style="padding: 10px 5px;">Equipo / Etiqueta</th>
+                            <th>Categoría / Marca</th>
+                            <th>Costo USD</th>
+                            <th style="text-align: center;">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+                <div id="carritoVacio" style="text-align: center; color: #999; padding: 40px 0;">
+                    El carrito está vacío. Configure el hardware a la izquierda o envíelos desde el almacén.
+                </div>
+            </div>
+
+            <div style="border-top: 2px solid #eee; padding-top: 20px; margin-top: 20px;">
+                <div style="display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: bold; color: #333; margin-bottom: 20px;">
+                    <span>Total Costo Mensual:</span>
+                    <span id="lblTotalLote">$ 0.00</span>
+                </div>
+                <button type="button" onclick="procesarDespachoMasivo()" style="width: 100%; background-color: #d97706; color: white; border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1.1rem; transition: background 0.3s;">
+                    🚀 Confirmar y Despachar Lote Completo
+                </button>
+            </div>
+        </div>
+
+    </div>
 </div>
+
+<script>
+    // Memoria RAM temporal para el lote de activos
+    let carritoActivos = [];
+
+    // =========================================================================================
+    // LÓGICA DE PRE-CARGA (PRE-FETCHING DESDE ALMACÉN) - ¡AHORA TRAE EL COSTO CORRECTO!
+    // =========================================================================================
+    document.addEventListener("DOMContentLoaded", function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const preloteIds = urlParams.get('prelote');
+
+        if (preloteIds) {
+            fetch('/Admin/ObtenerActivosPorIds?ids=' + preloteIds)
+            .then(response => response.json())
+            .then(data => {
+                if(data.length > 0) {
+                    data.forEach(activo => {
+                        carritoActivos.push({
+                            idActivo: activo.idActivo,
+                            textoActivo: activo.etiqueta + ' - ' + activo.modelo,
+                            categoria: activo.categoria,
+                            marca: activo.marca,
+                            costoPactado: parseFloat(activo.costo) || 0.00, // <<-- AQUÍ ESTÁ LA CORRECCIÓN
+                            multaDiaria: 1.00
+                        });
+                    });
+                    actualizarTablaVisual();
+                }
+            })
+            .catch(error => console.error("Error al cargar el Pre-lote:", error));
+        }
+    });
+
+    // =========================================================================================
+    // LÓGICA DEL FORMULARIO Y CARRITO
+    // =========================================================================================
+    function cambioCliente() {
+        cargarSedes();
+    }
+
+    function cargarSedes() {
+        var idCliente = document.getElementById("cboCliente").value;
+        var cboUbicacion = document.getElementById("cboUbicacion");
+
+        if (!idCliente) {
+            cboUbicacion.innerHTML = '<option value="">Esperando selección de cliente...</option>';
+            cboUbicacion.disabled = true; cboUbicacion.style.backgroundColor = "#f9fafb";
+            return;
+        }
+
+        cboUbicacion.innerHTML = '<option value="">Cargando sedes...</option>';
+        fetch(`@Url.Action("ObtenerUbicacionesPorCliente", "Admin")?idCliente=${idCliente}`)
+            .then(res => res.json())
+            .then(data => {
+                cboUbicacion.innerHTML = '<option value="">Seleccione la sede...</option>';
+                data.forEach(item => {
+                    let opt = document.createElement("option");
+                    opt.value = item.id; opt.text = item.texto;
+                    cboUbicacion.appendChild(opt);
+                });
+                cboUbicacion.disabled = false; cboUbicacion.style.backgroundColor = "white";
+            });
+    }
+
+    function cargarMarcasYPrecio() {
+        var idCategoria = document.getElementById("cboCategoria").value;
+        var cboMarca = document.getElementById("cboMarca");
+        var cboActivo = document.getElementById("cboActivo");
+        var txtCosto = document.getElementById("txtCostoPactado");
+
+        if (!idCategoria) {
+            cboMarca.innerHTML = '<option value="">Esperando...</option>'; cboMarca.disabled = true;
+            cboActivo.innerHTML = '<option value="">Esperando...</option>'; cboActivo.disabled = true;
+            txtCosto.value = ""; return;
+        }
+
+        fetch(`@Url.Action("ObtenerDetallesCategoria", "Admin")?idCategoria=${idCategoria}`)
+            .then(res => res.json())
+            .then(data => {
+                txtCosto.value = data.costo.toFixed(2);
+                cboMarca.innerHTML = '<option value="">Seleccione marca...</option>';
+                data.marcas.forEach(m => {
+                    let opt = document.createElement("option"); opt.value = m; opt.text = m;
+                    cboMarca.appendChild(opt);
+                });
+                cboMarca.disabled = false; cboMarca.style.backgroundColor = "white";
+                cboActivo.innerHTML = '<option value="">Esperando selección de marca...</option>';
+                cboActivo.disabled = true;
+            });
+    }
+
+    function cargarEquipos() {
+        var idCategoria = document.getElementById("cboCategoria").value;
+        var marca = document.getElementById("cboMarca").value;
+        var cboActivo = document.getElementById("cboActivo");
+
+        if (!marca) { cboActivo.innerHTML = '<option value="">Esperando...</option>'; cboActivo.disabled = true; return; }
+
+        fetch(`@Url.Action("ObtenerActivosFiltrados", "Admin")?idCategoria=${idCategoria}&marca=${encodeURIComponent(marca)}`)
+            .then(res => res.json())
+            .then(data => {
+                cboActivo.innerHTML = '<option value="">Seleccione el equipo específico...</option>';
+                data.forEach(item => {
+                    if (!carritoActivos.some(x => x.idActivo == item.id)) {
+                        let opt = document.createElement("option"); opt.value = item.id; opt.text = item.texto;
+                        cboActivo.appendChild(opt);
+                    }
+                });
+                cboActivo.disabled = false; cboActivo.style.backgroundColor = "white";
+            });
+    }
+
+    function agregarAlCarrito() {
+        const cboActivo = document.getElementById("cboActivo");
+        const idActivo = cboActivo.value;
+        if (!idActivo) { alert("Debe seleccionar un equipo físico en stock."); return; }
+
+        const cboCat = document.getElementById("cboCategoria");
+        const cboMar = document.getElementById("cboMarca");
+
+        const item = {
+            idActivo: idActivo,
+            textoActivo: cboActivo.options[cboActivo.selectedIndex].text,
+            categoria: cboCat.options[cboCat.selectedIndex].text,
+            marca: cboMar.value,
+            costoPactado: parseFloat(document.getElementById("txtCostoPactado").value) || 0,
+            multaDiaria: parseFloat(document.getElementById("txtMultaDiaria").value) || 0
+        };
+
+        carritoActivos.push(item);
+        actualizarTablaVisual();
+        cargarEquipos(); // Refresca la lista para quitar el equipo seleccionado
+    }
+
+    function eliminarItem(idActivo) {
+        carritoActivos = carritoActivos.filter(x => x.idActivo != idActivo);
+        actualizarTablaVisual();
+        if(document.getElementById("cboMarca").value) cargarEquipos();
+    }
+
+    function actualizarTablaVisual() {
+        const tbody = document.querySelector("#tablaCarrito tbody");
+        const vacio = document.getElementById("carritoVacio");
+        const lblTotal = document.getElementById("lblTotalLote");
+
+        tbody.innerHTML = "";
+        let total = 0;
+
+        if (carritoActivos.length === 0) {
+            vacio.style.display = "block";
+        } else {
+            vacio.style.display = "none";
+
+            carritoActivos.forEach(x => {
+                total += x.costoPactado;
+                let row = `
+                    <tr style="border-bottom: 1px solid #eee; font-size:0.9rem;">
+                        <td style="padding:12px 5px;"><strong>${x.textoActivo.split(' - ')[0]}</strong><br/><span style="color:#666;">${x.textoActivo.split(' - ')[1]}</span></td>
+                        <td>${x.categoria}<br/><small style="color:#888;">${x.marca}</small></td>
+                        <td>$ ${x.costoPactado.toFixed(2)}</td>
+                        <td style="text-align:center;"><button type="button" onclick="eliminarItem(${x.idActivo})" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:1.1rem;">🗑️</button></td>
+                    </tr>`;
+                tbody.innerHTML += row;
+            });
+        }
+        lblTotal.innerText = `$ ${total.toFixed(2)}`;
+    }
+
+    function procesarDespachoMasivo() {
+        const idCliente = document.getElementById("cboCliente").value;
+        const idUbicacion = document.getElementById("cboUbicacion").value;
+        const fInicio = document.getElementById("txtFechaIngreso").value;
+        const fVence = document.getElementById("txtFechaVencimiento").value;
+
+        if (!idCliente || !idUbicacion || !fInicio || !fVence) { alert("Complete los datos maestros (Cliente, Sede, Fecha Inicio y Vencimiento)."); return; }
+        if (carritoActivos.length === 0) { alert("Debe añadir al menos un componente al lote."); return; }
+
+        const payload = {
+            IdCliente: parseInt(idCliente),
+            IdUbicacionDestino: parseInt(idUbicacion),
+            FechaIngreso: fInicio,
+            FechaVencimiento: fVence,
+            Items: carritoActivos
+        };
+
+        if(!confirm(`¿Desea confirmar el envío de este lote de ${carritoActivos.length} activos?`)) return;
+
+        fetch(`@Url.Action("GuardarAlquilerMasivo", "Admin")`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.success) {
+                alert("¡Lote procesado con éxito! Se crearon los contratos y movimientos.");
+                window.location.href = `@Url.Action("Index", "Admin")`;
+            } else {
+                alert("Ocurrió un error en la Base de Datos al guardar:\n" + data.error);
+            }
+        })
+        .catch(error => {
+            alert("Error de conexión con el servidor.");
+        });
+    }
+
+    // CONTROL DE FECHAS (MÍNIMO 1 AÑO)
+    document.addEventListener("DOMContentLoaded", function() {
+        const inputIngreso = document.getElementById("txtFechaIngreso");
+        const inputVencimiento = document.getElementById("txtFechaVencimiento");
+
+        inputIngreso.addEventListener('change', function() {
+            if (this.value) {
+                const partes = this.value.split('-');
+                const anio = parseInt(partes[0]) + 1;
+                const mes = partes[1]; const dia = partes[2];
+                const fechaMinima = `${anio}-${mes}-${dia}`;
+
+                inputVencimiento.min = fechaMinima;
+                inputVencimiento.value = fechaMinima;
+            }
+        });
+    });
+</script>

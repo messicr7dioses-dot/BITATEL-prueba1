@@ -1,7 +1,70 @@
-﻿@{
-    ViewBag.Title = "Dashboard Admin";
+﻿@model BITATEL_prueba1.Models.DashboardAdminViewModel
+@{
+    ViewBag.Title = "Dashboard ERP";
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
 }
 
-<h2>Panel de Control Administrativo</h2>
-<p>Bienvenido, aquí puedes gestionar el inventario y los contratos.</p>
+<h2 style="color: #333; margin-bottom: 25px;">Dashboard Operativo</h2>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px;">
+
+    <!-- TARJETA 1: TOTAL INVENTARIO -->
+    <a href="@Url.Action("GestionarStock", "Admin", new { filtro = "todo" })" style="text-decoration: none; background: white; border-radius: 8px; padding: 25px; border-left: 5px solid #3b82f6; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+        <div style="display: flex; align-items: center; gap: 8px; color: #6b7280; font-weight: bold; font-size: 0.85rem; text-transform: uppercase;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+            Total Inventario
+        </div>
+        <div style="font-size: 2.2rem; font-weight: bold; color: #1f2937; margin: 10px 0;">@Model.TotalActivos</div>
+        <div style="display: flex; align-items: center; gap: 5px; color: #3b82f6; font-size: 0.85rem; font-weight: bold;">
+            Ver lista maestra <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </div>
+    </a>
+
+    <!-- TARJETA 2: EN STOCK (ALMACÉN BITATEL) -->
+    <a href="@Url.Action("StockLocal", "Admin")" style="text-decoration: none; background: white; border-radius: 8px; padding: 25px; border-left: 5px solid #10b981; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+        <div style="display: flex; align-items: center; gap: 8px; color: #6b7280; font-weight: bold; font-size: 0.85rem; text-transform: uppercase;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+            En Almacén
+        </div>
+        <div style="font-size: 2.2rem; font-weight: bold; color: #1f2937; margin: 10px 0;">@Model.ActivosEnStock</div>
+        <div style="display: flex; align-items: center; gap: 5px; color: #10b981; font-size: 0.85rem; font-weight: bold;">
+            Listos para despachar <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </div>
+    </a>
+
+    <!-- TARJETA 3: EN PRODUCCIÓN -->
+    <a href="@Url.Action("GestionarStock", "Admin", new { filtro = "produccion" })" style="text-decoration: none; background: white; border-radius: 8px; padding: 25px; border-left: 5px solid #8b5cf6; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+        <div style="display: flex; align-items: center; gap: 8px; color: #6b7280; font-weight: bold; font-size: 0.85rem; text-transform: uppercase;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><path d="M9 22v-4h6v4"></path><path d="M8 6h.01M16 6h.01M12 6h.01M12 10h.01M16 10h.01M8 10h.01M8 14h.01M12 14h.01M16 14h.01"></path></svg>
+            En Producción
+        </div>
+        <div style="font-size: 2.2rem; font-weight: bold; color: #1f2937; margin: 10px 0;">@Model.ActivosAlquilados</div>
+        <div style="display: flex; align-items: center; gap: 5px; color: #8b5cf6; font-size: 0.85rem; font-weight: bold;">
+            Ver por clientes <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </div>
+    </a>
+
+    <!-- TARJETA 4: CONTRATOS -->
+    <a href="@Url.Action("Contratos", "Admin")" style="text-decoration: none; background: white; border-radius: 8px; padding: 25px; border-left: 5px solid #f59e0b; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+        <div style="display: flex; align-items: center; gap: 8px; color: #6b7280; font-weight: bold; font-size: 0.85rem; text-transform: uppercase;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            Contratos
+        </div>
+        <div style="font-size: 2.2rem; font-weight: bold; color: #1f2937; margin: 10px 0;">@Model.ClientesActivos <span style="font-size: 1rem; color:#888;">empresas</span></div>
+        <div style="display: flex; align-items: center; gap: 5px; color: #f59e0b; font-size: 0.85rem; font-weight: bold;">
+            Gestionar contratos <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </div>
+    </a>
+
+    <!-- TARJETA 5: DEUDAS Y MORAS (NUEVO) -->
+    <a href="@Url.Action("Cobranzas", "Admin")" style="text-decoration: none; background: white; border-radius: 8px; padding: 25px; border-left: 5px solid #ef4444; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+        <div style="display: flex; align-items: center; gap: 8px; color: #6b7280; font-weight: bold; font-size: 0.85rem; text-transform: uppercase;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            Deudas y Moras
+        </div>
+        <div style="font-size: 2.2rem; font-weight: bold; color: #dc2626; margin: 10px 0;">$ @Model.TotalDeudaPendiente.ToString("0.00")</div>
+        <div style="display: flex; align-items: center; gap: 5px; color: #ef4444; font-size: 0.85rem; font-weight: bold;">
+            Ver estado de cuenta <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </div>
+    </a>
+</div>
