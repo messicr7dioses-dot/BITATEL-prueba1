@@ -8,9 +8,11 @@
         .GroupBy(x => x.Sede)
         .ToDictionary(g => g.Key, g => g.Select(x => x.Ubicacion).Distinct().OrderBy(x => x).ToList());
 
+    // NUEVO FILTRO: Extracción de las categorías (Componente en el modelo) únicas
+    var categoriasUnicas = Model.Select(x => x.Componente).Distinct().OrderBy(x => x).ToList();
     var marcasUnicas = Model.Select(x => x.Marca).Distinct().OrderBy(x => x).ToList();
     var contratosUnicos = Model.Select(x => x.Contrato).Distinct().OrderBy(x => x).ToList();
-    var estadosUnicos = Model.Select(x => x.EstadoFisico).Distinct().OrderBy(x => x).ToList(); // Nuevo Filtro
+    var estadosUnicos = Model.Select(x => x.EstadoFisico).Distinct().OrderBy(x => x).ToList();
 }
 
 <style>
@@ -99,121 +101,149 @@
                 </div>
             </div>
 
-            <div><strong style="display:block; margin-bottom:8px;">Marca:</strong><div style="max-height: 150px; overflow-y: auto; border: 1px solid #e2e8f0; padding: 10px;">@foreach (var m in marcasUnicas)
-            {<label style="display:block;"><input type="checkbox" class="flt-marca" value="@m.ToLower()"> @m</label>}</div></div>
-            <div><strong style="display:block; margin-bottom:8px;">Contrato (Lote):</strong><div style="max-height: 150px; overflow-y: auto; border: 1px solid #e2e8f0; padding: 10px;">@foreach (var c in contratosUnicos)
-            {<label style="display:block;"><input type="checkbox" class="flt-contrato" value="@c.ToLower()"> @c</label>}</div></div>
             <div>
-                <strong style="display:block; margin-bottom:8px;">Estado Físico:</strong>
+                <strong style="display:block; margin-bottom:8px;">Categoría:</strong>
                 <div style="max-height: 150px; overflow-y: auto; border: 1px solid #e2e8f0; padding: 10px;">
-                    @foreach (var e in estadosUnicos)
-                    {<label style="display:block;"><input type="checkbox" class="flt-estado" value="@e.ToLower()"> @e</label>}
+                    @foreach (var cat in categoriasUnicas)
+                    {
+                        <label style="display:block;"><input type="checkbox" class="flt-categoria" value="@cat.ToLower()"> @cat</label>
+                    }
                 </div>
             </div>
-            <div><strong style="display:block; margin-bottom:8px;">Estado Mora:</strong><div style="border: 1px solid #e2e8f0; padding: 10px;"><label style="display:block;"><input type="checkbox" class="flt-mora" value="al día"> AL DÍA</label><label style="display:block; color:#dc2626;"><input type="checkbox" class="flt-mora" value="vencido"> VENCIDO</label></div></div>
+
+            <div>
+                <strong style="display:block; margin-bottom:8px;">Marca:</strong><div style="max-height: 150px; overflow-y: auto; border: 1px solid #e2e8f0; padding: 10px;">
+                    @foreach (var m in marcasUnicas)
+                    {<label style="display:block;"><input type="checkbox" class="flt-marca" value="@m.ToLower()"> @m</label>}
+            </div>
         </div>
-        <div style="margin-top: 15px; text-align: right;">
-            <button onclick="limpiarFiltros()" style="background:#f1f5f9; border:none; padding:10px 20px; border-radius:5px; font-weight:bold; cursor:pointer;">Limpiar</button>
-            <button onclick="aplicarFiltros()" style="background:#d97706; color:white; border:none; padding:10px 30px; border-radius:5px; font-weight:bold; cursor:pointer;">Aplicar Filtros</button>
+
+        <div>
+            <strong style="display:block; margin-bottom:8px;">Contrato (Lote):</strong><div style="max-height: 150px; overflow-y: auto; border: 1px solid #e2e8f0; padding: 10px;">
+                @foreach (var c in contratosUnicos)
+                {<label style="display:block;"><input type="checkbox" class="flt-contrato" value="@c.ToLower()"> @c</label>}
         </div>
     </div>
 
-    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px 25px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-        <div style="display: flex; gap: 10px; align-items: center;">
-            <button id="btnMover" disabled onclick="abrirModalTraslado()" style="opacity: 0.5; background-color: #10b981; color: white; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: not-allowed;">Traslado Físico</button>
-            <button id="btnReemplazo" disabled onclick="procesarGarantia()" style="opacity: 0.5; background-color: #6366f1; color: white; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: not-allowed;">Reemplazo (Garantía)</button>
-            <span id="txtSeleccion" style="color: #d97706; font-weight: bold;">0 sel.</span>
+    <div>
+        <strong style="display:block; margin-bottom:8px;">Estado Físico:</strong>
+        <div style="max-height: 150px; overflow-y: auto; border: 1px solid #e2e8f0; padding: 10px;">
+            @foreach (var e in estadosUnicos)
+            {<label style="display:block;"><input type="checkbox" class="flt-estado" value="@e.ToLower()"> @e</label>}
         </div>
-        <div style="display: flex; gap: 10px; width: 400px; position:relative;">
+    </div>
+
+    <div><strong style="display:block; margin-bottom:8px;">Estado Mora:</strong><div style="border: 1px solid #e2e8f0; padding: 10px;"><label style="display:block;"><input type="checkbox" class="flt-mora" value="al día"> AL DÍA</label><label style="display:block; color:#dc2626;"><input type="checkbox" class="flt-mora" value="vencido"> VENCIDO</label></div></div>
+</div>
+<div style="margin-top: 15px; text-align: right;">
+    <button onclick="limpiarFiltros()" style="background:#f1f5f9; border:none; padding:10px 20px; border-radius:5px; font-weight:bold; cursor:pointer;">Limpiar</button>
+    <button onclick="aplicarFiltros()" style="background:#d97706; color:white; border:none; padding:10px 30px; border-radius:5px; font-weight:bold; cursor:pointer;">Aplicar Filtros</button>
+</div>
+</div>
+
+<div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px 25px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+    <div style="display: flex; gap: 10px; align-items: center;">
+        <button id="btnMover" disabled onclick="abrirModalTraslado()" style="opacity: 0.5; background-color: #10b981; color: white; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: not-allowed;">Traslado Físico</button>
+        <button id="btnReemplazo" disabled onclick="procesarGarantia()" style="opacity: 0.5; background-color: #6366f1; color: white; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: not-allowed;">Reemplazo (Garantía)</button>
+        <span id="txtSeleccion" style="color: #d97706; font-weight: bold;">0 sel.</span>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: center;">
+        <div style="position:relative; width: 250px;">
             <svg style="position: absolute; left: 12px; top: 12px; color: #94a3b8;" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <input type="text" id="txtBuscarUniversal" onkeyup="filtrarTablaUniversal()" placeholder="Buscador Universal (Etiqueta, Serie)..." style="width: 100%; padding: 10px 10px 10px 40px; border: 1px solid #cbd5e1; border-radius: 5px;">
+            <input type="text" id="txtBuscarUniversal" onkeyup="filtrarTablaUniversal()" placeholder="Buscador Universal..." style="width: 100%; padding: 10px 10px 10px 40px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box;">
         </div>
+
+        <button onclick="exportarCSV()" style="background-color: #6366f1; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Exportar CSV
+        </button>
     </div>
+</div>
 
-    <div style="background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow-x: auto; overflow-y: auto; max-height: 60vh; width: 100%; border: 1px solid #e5e7eb;">
-        <table id="tablaInventario" style="width: 100%; border-collapse: collapse; text-align: left; white-space: nowrap;">
-            <thead style="position: sticky; top: 0; z-index: 10; background: #f9fafb;">
-                <tr style="color: #4b5563; font-size: 0.9rem; box-shadow: 0 2px 0 0 #e5e7eb;">
-                    <th style="padding: 15px; text-align: center;"><input type="checkbox" onchange="seleccionarTodos(this)"></th>
-                    <th style="padding: 15px;">Etiqueta ID</th>
-                    <th style="padding: 15px;">Categoría</th>
-                    <th style="padding: 15px;">Marca</th>
-                    <th style="padding: 15px;">Modelo</th>
-                    <th style="padding: 15px;">Nro. Serie</th>
-                    <th style="padding: 15px; border-left: 2px solid #e2e8f0;">Sede Padre</th>
-                    <th style="padding: 15px;">Ambiente (Ubicación)</th>
-                    <th style="padding: 15px; text-align: center;">Estado Físico</th>
-                    <th style="padding: 15px; background-color: #f9fafb;">F. Despacho</th>
-                    <th style="padding: 15px; background-color: #f9fafb;">F. Devolución</th>
-                    <th style="padding: 15px; text-align: right;">Costo / Cuota</th>
-                    <th style="padding: 15px; text-align: center;">Estado de Mora</th>
-                    <th style="padding: 15px; text-align: center;">Mora Acum.</th>
-                    <th style="padding: 15px; text-align: center;">Contrato</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (!Model.Any())
+<div style="background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow-x: auto; overflow-y: auto; max-height: 60vh; width: 100%; border: 1px solid #e5e7eb;">
+    <table id="tablaInventario" style="width: 100%; border-collapse: collapse; text-align: left; white-space: nowrap;">
+        <thead style="position: sticky; top: 0; z-index: 10; background: #f9fafb;">
+            <tr style="color: #4b5563; font-size: 0.9rem; box-shadow: 0 2px 0 0 #e5e7eb;">
+                <th style="padding: 15px; text-align: center;"><input type="checkbox" onchange="seleccionarTodos(this)"></th>
+                <th style="padding: 15px;">Etiqueta ID</th>
+                <th style="padding: 15px;">Categoría</th>
+                <th style="padding: 15px;">Marca</th>
+                <th style="padding: 15px;">Modelo</th>
+                <th style="padding: 15px;">Nro. Serie</th>
+                <th style="padding: 15px; border-left: 2px solid #e2e8f0;">Sede Padre</th>
+                <th style="padding: 15px;">Ambiente (Ubicación)</th>
+                <th style="padding: 15px; text-align: center;">Estado Físico</th>
+                <th style="padding: 15px; background-color: #f9fafb;">F. Despacho</th>
+                <th style="padding: 15px; background-color: #f9fafb;">F. Devolución</th>
+                <th style="padding: 15px; text-align: right;">Costo / Cuota</th>
+                <th style="padding: 15px; text-align: center;">Estado de Mora</th>
+                <th style="padding: 15px; text-align: center;">Mora Acum.</th>
+                <th style="padding: 15px; text-align: center;">Contrato</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (!Model.Any())
+            {
+                <tr><td colspan="15" style="padding: 40px; text-align: center; color: #6b7280; font-style: italic;">No hay activos registrados.</td></tr>
+            }
+            else
+            {
+                foreach (var item in Model)
                 {
-                    <tr><td colspan="15" style="padding: 40px; text-align: center; color: #6b7280; font-style: italic;">No hay activos registrados.</td></tr>
-                }
-                else
-                {
-                    foreach (var item in Model)
-                    {
-                        <tr class="item-row" style="border-bottom: 1px solid #f3f4f6; @(item.EstaVencido ? "background-color: #fef2f2;" : "")">
-                            <td style="padding: 15px; text-align: center;">
-                                <input type="checkbox" class="chk-item" value="@item.IdActivo" data-vencido="@item.EstaVencido.ToString().ToLower()" onchange="evaluarSeleccion()">
-                            </td>
-                            <td class="col-etiqueta" style="padding: 15px; font-weight: bold; color: #1e40af;">@item.Etiqueta</td>
-                            <td style="padding: 15px;">@item.Componente</td>
-                            <td class="col-marca" style="padding: 15px; font-weight: 500;">@item.Marca</td>
-                            <td class="col-modelo" style="padding: 15px;">@item.Modelo</td>
-                            <td style="padding: 15px; font-family: monospace;">@item.Serie</td>
-                            <td style="padding: 15px; border-left: 2px solid #f1f5f9; font-weight: bold; color: #475569;">@item.Sede</td>
-                            <td class="col-ubicacion" style="padding: 15px; color: #64748b;">@item.Ubicacion</td>
+                    <tr class="item-row" style="border-bottom: 1px solid #f3f4f6; @(item.EstaVencido ? "background-color: #fef2f2;" : "")">
+                        <td style="padding: 15px; text-align: center;">
+                            <input type="checkbox" class="chk-item" value="@item.IdActivo" data-vencido="@item.EstaVencido.ToString().ToLower()" onchange="evaluarSeleccion()">
+                        </td>
+                        <td class="col-etiqueta" style="padding: 15px; font-weight: bold; color: #1e40af;">@item.Etiqueta</td>
+                        <td class="col-categoria" style="padding: 15px;">@item.Componente</td>
+                        <td class="col-marca" style="padding: 15px; font-weight: 500;">@item.Marca</td>
+                        <td class="col-modelo" style="padding: 15px;">@item.Modelo</td>
+                        <td style="padding: 15px; font-family: monospace;">@item.Serie</td>
+                        <td style="padding: 15px; border-left: 2px solid #f1f5f9; font-weight: bold; color: #475569;">@item.Sede</td>
+                        <td class="col-ubicacion" style="padding: 15px; color: #64748b;">@item.Ubicacion</td>
 
-                            <td class="col-estado" style="padding: 15px; text-align: center;">
-                                @if (item.EstadoFisico.ToUpper().Contains("AVERIAD") || item.EstadoFisico.ToUpper().Contains("DAÑAD"))
-                                {
-                                    <span style="background: #fef2f2; color: #dc2626; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; border: 1px solid #fecaca; animation: pulse 2s infinite;">⚠️ @item.EstadoFisico</span>
-                                }
-                                else
-                                {
-                                    <span style="background: #e0f2fe; color: #1d4ed8; padding: 3px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem;">@item.EstadoFisico</span>
-                                }
-                            </td>
+                        <td class="col-estado" style="padding: 15px; text-align: center;">
+                            @if (item.EstadoFisico.ToUpper().Contains("AVERIAD") || item.EstadoFisico.ToUpper().Contains("DAÑAD"))
+                            {
+                                <span style="background: #fef2f2; color: #dc2626; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; border: 1px solid #fecaca; animation: pulse 2s infinite;">⚠️ @item.EstadoFisico</span>
+                            }
+                            else
+                            {
+                                <span style="background: #e0f2fe; color: #1d4ed8; padding: 3px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem;">@item.EstadoFisico</span>
+                            }
+                        </td>
 
-                            <td style="padding: 15px;">@item.FechaDespacho</td>
-                            <td style="padding: 15px; color:@(item.EstaVencido ? "#dc2626":"inherit")">@item.FechaDevolucion</td>
-                            <td style="padding: 15px; text-align: right;">
-                                <div style="font-weight: bold; color: #4b5563;">$ @item.CostoProducto.ToString("0.00")</div>
-                                <div style="color: #059669; font-size: 0.85rem; font-weight: bold;">$ @item.CuotaMensual.ToString("0.00") <span style="font-weight:normal; color:#888;">/m</span></div>
-                            </td>
-                            <td class="col-mora" style="padding: 15px; text-align: center;">
-                                @if (item.EstadoMora == "VENCIDO")
-                                {<span style="color: #dc2626; font-weight: bold;">VENCIDO</span> }
-                                else
-                                { <span style="color: #10b981; font-weight: bold;">AL DÍA</span>}
-                            </td>
-                            <td style="padding: 15px; text-align: center;">
-                                @if (item.DiasMora > 0)
-                                {
-                                    <button class="mora-btn" onclick="abrirDetalleMora('@item.Etiqueta', @item.DiasMora, @item.MultaDiaria, @item.TotalMora)">
-                                        $ @item.TotalMora.ToString("0.00")
-                                    </button>
-                                }
-                                else
-                                {
-                                    <span style="color: #94a3b8;">-</span>
-                                }
-                            </td>
-                            <td class="col-contrato" style="padding: 15px; text-align: center;"><span style="background: #e0e7ff; color: #3b82f6; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.85rem;">@item.Contrato</span></td>
-                        </tr>
-                    }
+                        <td style="padding: 15px;">@item.FechaDespacho</td>
+                        <td style="padding: 15px; color:@(item.EstaVencido ? "#dc2626":"inherit")">@item.FechaDevolucion</td>
+                        <td style="padding: 15px; text-align: right;">
+                            <div style="font-weight: bold; color: #4b5563;">$ @item.CostoProducto.ToString("0.00")</div>
+                            <div style="color: #059669; font-size: 0.85rem; font-weight: bold;">$ @item.CuotaMensual.ToString("0.00") <span style="font-weight:normal; color:#888;">/m</span></div>
+                        </td>
+                        <td class="col-mora" style="padding: 15px; text-align: center;">
+                            @if (item.EstadoMora == "VENCIDO")
+                            {<span style="color: #dc2626; font-weight: bold;">VENCIDO</span> }
+                            else
+                            { <span style="color: #10b981; font-weight: bold;">AL DÍA</span>}
+                        </td>
+                        <td style="padding: 15px; text-align: center;">
+                            @if (item.DiasMora > 0)
+                            {
+                                <button class="mora-btn" onclick="abrirDetalleMora('@item.Etiqueta', @item.DiasMora, @item.MultaDiaria, @item.TotalMora)">
+                                    $ @item.TotalMora.ToString("0.00")
+                                </button>
+                            }
+                            else
+                            {
+                                <span style="color: #94a3b8;">-</span>
+                            }
+                        </td>
+                        <td class="col-contrato" style="padding: 15px; text-align: center;"><span style="background: #e0e7ff; color: #3b82f6; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.85rem;">@item.Contrato</span></td>
+                    </tr>
                 }
-            </tbody>
-        </table>
-    </div>
+            }
+        </tbody>
+    </table>
+</div>
 </div>
 
 <div id="modalMora" class="modal-overlay">
@@ -316,25 +346,29 @@
 
     function aplicarFiltros() {
         var ubis = obtenerValoresChecked('.flt-ubicacion');
+        var categorias = obtenerValoresChecked('.flt-categoria'); // OBTENCIÓN CATEGORÍA
         var marcas = obtenerValoresChecked('.flt-marca');
         var contratos = obtenerValoresChecked('.flt-contrato');
         var moras = obtenerValoresChecked('.flt-mora');
-        var estados = obtenerValoresChecked('.flt-estado'); // Filtro de estado añadido
+        var estados = obtenerValoresChecked('.flt-estado');
 
         document.querySelectorAll(".item-row").forEach(function(fila) {
             var fUbi = fila.querySelector(".col-ubicacion").textContent.toLowerCase();
+            var fCategoria = fila.querySelector(".col-categoria").textContent.toLowerCase(); // LECTURA CATEGORÍA
             var fMarca = fila.querySelector(".col-marca").textContent.toLowerCase();
             var fContrato = fila.querySelector(".col-contrato").textContent.toLowerCase();
             var fMora = fila.querySelector(".col-mora").textContent.toLowerCase();
             var fEstado = fila.querySelector(".col-estado") ? fila.querySelector(".col-estado").textContent.toLowerCase() : "";
 
             var pUbi = ubis.length === 0 || ubis.some(u => fUbi.includes(u));
+            var pCategoria = categorias.length === 0 || categorias.some(c => fCategoria.includes(c)); // FILTRO CATEGORÍA
             var pMarca = marcas.length === 0 || marcas.some(m => fMarca.includes(m));
             var pCont = contratos.length === 0 || contratos.some(c => fContrato.includes(c));
             var pMora = moras.length === 0 || moras.some(m => fMora.includes(m));
             var pEstado = estados.length === 0 || estados.some(e => fEstado.includes(e));
 
-            if (pUbi && pMarca && pCont && pMora && pEstado) {
+            // CONDICIONAL ACTUALIZADO
+            if (pUbi && pCategoria && pMarca && pCont && pMora && pEstado) {
                 fila.style.display = "";
             } else {
                 fila.style.display = "none";
@@ -465,5 +499,38 @@
                 alert("Error: " + data.message);
             }
         });
+    }
+
+    function exportarCSV() {
+        var filasVisible = Array.from(document.querySelectorAll(".item-row")).filter(f => f.style.display !== "none");
+        if (filasVisible.length === 0) { alert("No hay datos para exportar con los filtros actuales."); return; }
+
+        var csv = "Etiqueta,Categoria,Marca,Modelo,Serie,Sede Padre,Ambiente,Estado,F.Despacho,F.Devolucion,Costo,Estado Mora,Mora Acum,Contrato\n";
+        filasVisible.forEach(fila => {
+            let cols = fila.querySelectorAll("td");
+            let etiqueta = cols[1].innerText.trim();
+            let cat = cols[2].innerText.trim();
+            let marca = cols[3].innerText.trim();
+            let modelo = cols[4].innerText.trim();
+            let serie = cols[5].innerText.trim();
+            let sede = cols[6].innerText.trim();
+            let amb = cols[7].innerText.trim();
+            let estado = cols[8].innerText.replace('⚠️', '').trim();
+            let fDesp = cols[9].innerText.trim();
+            let fDev = cols[10].innerText.trim();
+            let costo = cols[11].innerText.replace(/\n/g, ' / ').trim(); // Limpiamos el salto de línea del HTML
+            let estadoMora = cols[12].innerText.replace('⚠️', '').replace('✅', '').trim();
+            let moraAcum = cols[13].innerText.trim();
+            let contrato = cols[14].innerText.trim();
+
+            csv += `"${etiqueta}","${cat}","${marca}","${modelo}","${serie}","${sede}","${amb}","${estado}","${fDesp}","${fDev}","${costo}","${estadoMora}","${moraAcum}","${contrato}"\n`;
+        });
+
+        var enlace = document.createElement("a");
+        enlace.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
+        enlace.download = "Inventario_Cliente_BITATEL.csv";
+        document.body.appendChild(enlace);
+        enlace.click();
+        document.body.removeChild(enlace);
     }
 </script>

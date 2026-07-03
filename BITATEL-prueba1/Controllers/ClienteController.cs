@@ -541,49 +541,147 @@ namespace BITATEL_prueba1.Controllers
             catch (Exception ex) { return Json(new { success = false, message = ex.Message }); }
         }
 
-        // =======================================================
-        // OTRAS VISTAS DEL CLIENTE
-        // =======================================================
-        public ActionResult MiPerfil()
+     
+
+        [HttpGet]
+        public JsonResult ObtenerDetallesPorContratoCliente(string fechaDespacho)
         {
-            int idCliente = ObtenerIdCliente();
-            if (idCliente == 0) return RedirectToAction("Index", "Login");
-
-            string nombreEmpresa = "Empresa no asignada";
-            var listaSedes = new List<string>();
-
-            using (var con = new ConexionBD().ObtenerConexion())
+            try
             {
-                con.Open();
+                var lista = new List<object>();
+                Usuario user = (Usuario)Session["UsuarioActivo"];
 
-                using (var cmd = new SqlCommand("SELECT nombre_empresa FROM Clientes WHERE id_cliente = @id", con))
-                {
-                    cmd.Parameters.AddWithValue("@id", idCliente);
-                    var res = cmd.ExecuteScalar();
-                    if (res != DBNull.Value && res != null) nombreEmpresa = res.ToString();
-                }
+                if (user == null) return Json(new { error = "Sesión expirada" }, JsonRequestBehavior.AllowGet);
 
-                using (var cmd = new SqlCommand("SELECT nombre_sede FROM Sedes WHERE id_cliente = @id ORDER BY nombre_sede ASC", con))
+                int idClienteSeguro = 0;
+                string nombreEmpresa = "";
+
+                using (var con = new ConexionBD().ObtenerConexion())
                 {
-                    cmd.Parameters.AddWithValue("@id", idCliente);
-                    using (var reader = cmd.ExecuteReader())
+                    con.Open();
+
+                    // 1. Extraemos el ID del Cliente directamente de la tabla Usuarios (100% seguro y sin depender de otras funciones)
+                    using (var cmdCli = new SqlCommand("SELECT id_cliente FROM Usuarios WHERE id_usuario = @idUsu", con))
                     {
-                        while (reader.Read())
+                        cmdCli.Parameters.AddWithValue("@idUsu", user.IdUsuario);
+                        var resCli = cmdCli.ExecuteScalar();
+                        if (resCli != null && resCli != DBNull.Value)
+                            idClienteSeguro = Convert.ToInt32(resCli);
+                    }
+
+                    if (idClienteSeguro == 0) return Json(new { error = "Usuario no tiene un cliente asignado." }, JsonRequestBehavior.AllowGet);
+
+                    // 2. Extraemos el nombre de la empresa para dibujarlo en el PDF
+                    using (var cmdEmp = new SqlCommand("SELECT nombre_empresa FROM Clientes WHERE id_cliente = @id", con))
+                    {
+                        cmdEmp.Parameters.AddWithValue("@id", idClienteSeguro);
+                        nombreEmpresa = cmdEmp.ExecuteScalar()?.ToString() ?? "Cliente BITATEL";
+                    }
+
+                    // 3. Consulta de los activos
+                    string query = @"
+                        SELECT a.id_activo, a.etiqueta_activo, a.modelo, c.nombre_categoria, a.marca, 
+                               r.costo_pactado_usd, r.multa_diaria_usd, 
+                               ISNULL(u.nombre_sede, '') + ' - ' + ISNULL(ui.nombre_especifico, '') as sede, 
+                               CONVERT(varchar, r.fecha_vencimiento, 103) as fechaVencimiento
+                        FROM Registro_Alquiler r
+                        JOIN Activos a ON r.id_activo_actual = a.id_activo
+                        JOIN Categorias c ON a.id_categoria = c.id_categoria
+                        LEFT JOIN Ubicaciones_Internas ui ON a.id_ubicacion = ui.id_ubicacion
+                        LEFT JOIN Sedes u ON ui.id_sede = u.id_sede
+                        WHERE r.id_cliente = @idCli 
+                        AND CAST(r.fecha_ingreso AS DATE) = CONVERT(DATE, @fecha, 103)";
+
+                    using (var cmd = new SqlCommand(query, con))
+                    {
+                        cmd.Parameters.AddWithValue("@idCli", idClienteSeguro);
+                        cmd.Parameters.AddWithValue("@fecha", fechaDespacho);
+
+                        using (var reader = cmd.ExecuteReader())
                         {
-                            listaSedes.Add(reader["nombre_sede"].ToString());
+                            while (reader.Read())
+                            {
+                                lista.Add(new
+                                {
+                                    empresa = nombreEmpresa,
+                                    idActivo = reader["id_activo"],
+                                    textoActivo = reader["etiqueta_activo"].ToString() + " - " + reader["modelo"].ToString(),
+                                    categoria = reader["nombre_categoria"].ToString(),
+                                    marca = reader["marca"].ToString(),
+                                    costoPactado = Convert.ToDecimal(reader["costo_pactado_usd"]),
+                                    multaDiaria = Convert.ToDecimal(reader["multa_diaria_usd"]),
+                                    sede = reader["sede"].ToString(),
+                                    fechaVencimiento = reader["fechaVencimiento"].ToString()
+                                });
+                            }
                         }
                     }
                 }
+                return Json(lista, JsonRequestBehavior.AllowGet);
             }
+            catch (Exception ex)
+            {
+                return Json(new { error = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+        // =======================================================
+        // MÓDULO DE CONFIGURACIÓN Y SEGURIDAD
+        // =======================================================
 
-            ViewBag.Empresa = nombreEmpresa;
-            ViewBag.Sedes = listaSedes;
-
+        [HttpGet]
+        public ActionResult Configuracion()
+        {
+            if (!(Session["UsuarioActivo"] is Usuario user && user.IdRol == 2)) return RedirectToAction("Index", "Login");
             return View();
         }
+        [HttpPost]
+        public JsonResult ActualizarPassword(string actual, string nueva)
+        {
+            // Solución al IDE0019: Uso de "Pattern Matching" recomendado por Visual Studio
+            if (!(Session["UsuarioActivo"] is Usuario user))
+            {
+                return Json(new { success = false, message = "Sesión expirada. Inicie sesión nuevamente." });
+            }
 
-        public ActionResult Facturacion() { return View(); }
-        public ActionResult Solicitudes() { return View(); }
-        public ActionResult Configuracion() { return View(); }
+            try
+            {
+                using (var con = new ConexionBD().ObtenerConexion())
+                {
+                    con.Open();
+
+                    // 1. Verificamos que la contraseña actual ingresada sea correcta (Cotejamos contra SQL)
+                    string sqlCheck = "SELECT COUNT(*) FROM Usuarios WHERE id_usuario = @id AND password_hash = @actual";
+                    using (var cmdCheck = new SqlCommand(sqlCheck, con))
+                    {
+                        cmdCheck.Parameters.AddWithValue("@id", user.IdUsuario);
+                        cmdCheck.Parameters.AddWithValue("@actual", actual.Trim());
+
+                        int coincidencias = (int)cmdCheck.ExecuteScalar();
+                        if (coincidencias == 0)
+                        {
+                            return Json(new { success = false, message = "La contraseña actual es incorrecta." });
+                        }
+                    }
+
+                    // 2. Si es correcta, actualizamos a la nueva contraseña
+                    string sqlUpdate = "UPDATE Usuarios SET password_hash = @nueva WHERE id_usuario = @id";
+                    using (var cmdUpdate = new SqlCommand(sqlUpdate, con))
+                    {
+                        cmdUpdate.Parameters.AddWithValue("@id", user.IdUsuario);
+                        cmdUpdate.Parameters.AddWithValue("@nueva", nueva.Trim());
+                        cmdUpdate.ExecuteNonQuery();
+                    }
+
+                    // Nota: Se eliminó el re-guardado en la variable "user.Password" para evitar el error CS1061.
+                    // Ya está modificado en la Base de Datos, que es lo que realmente importa.
+                }
+
+                return Json(new { success = true, message = "Contraseña actualizada correctamente." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error de base de datos: " + ex.Message });
+            }
+        }
     }
 }

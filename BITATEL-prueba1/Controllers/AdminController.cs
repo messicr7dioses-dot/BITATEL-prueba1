@@ -48,7 +48,6 @@ namespace BITATEL_prueba1.Controllers
                 using (var cmd = new SqlCommand("SELECT COUNT(*) FROM Clientes WHERE activo = 1", con))
                     dashboard.ClientesActivos = (int)cmd.ExecuteScalar();
 
-                // NUEVO CÁLCULO DE MORA REAL PARA EL DASHBOARD
                 string sqlDeuda = @"SELECT ISNULL(SUM(DATEDIFF(day, r.fecha_vencimiento, GETDATE()) * ISNULL(r.multa_diaria_usd, 1.00)), 0) 
                                     FROM Registro_Alquiler r 
                                     INNER JOIN Activos a ON r.id_activo_actual = a.id_activo 
@@ -197,7 +196,6 @@ namespace BITATEL_prueba1.Controllers
             return Json(listaActivos, JsonRequestBehavior.AllowGet);
         }
 
-        // <<<<----- AQUÍ APLICAMOS LA MAGIA (ISNULL(c.costo_anual_sugerido, 0)) ----->>>>
         [HttpGet]
         public JsonResult ObtenerActivosPorIds(string ids)
         {
@@ -207,7 +205,6 @@ namespace BITATEL_prueba1.Controllers
             using (var con = new ConexionBD().ObtenerConexion())
             {
                 con.Open();
-
                 var idsValidos = string.Join(",", ids.Split(',').Where(x => int.TryParse(x, out _)));
                 if (string.IsNullOrEmpty(idsValidos)) return Json(listaActivos, JsonRequestBehavior.AllowGet);
 
@@ -229,7 +226,7 @@ namespace BITATEL_prueba1.Controllers
                             categoria = reader["nombre_categoria"].ToString(),
                             marca = reader["marca"].ToString(),
                             modelo = reader["modelo"].ToString(),
-                            costo = Convert.ToDecimal(reader["costo"]) // Envía el costo al frontend
+                            costo = Convert.ToDecimal(reader["costo"])
                         });
                     }
                 }
@@ -274,7 +271,7 @@ namespace BITATEL_prueba1.Controllers
 
                             var resultId = cmdCli.ExecuteScalar();
                             if (resultId == null || resultId == DBNull.Value)
-                                throw new Exception("Error crítico: La base de datos no devolvió el ID del nuevo cliente.");
+                                throw new Exception("Error crítico: La BD no devolvió el ID del nuevo cliente.");
 
                             nuevoIdCliente = Convert.ToInt64(resultId);
                         }
@@ -600,7 +597,7 @@ namespace BITATEL_prueba1.Controllers
         }
 
         // =======================================================
-        // MÓDULOS DE INVENTARIO Y STOCK (RUTAS DEL DASHBOARD)
+        // MÓDULOS DE INVENTARIO Y STOCK
         // =======================================================
         public class ClienteStockItem
         {
@@ -711,7 +708,7 @@ namespace BITATEL_prueba1.Controllers
         }
 
         // =======================================================
-        // VISTA DETALLADA DEL INVENTARIO DEL CLIENTE (ACTION HUB)
+        // VISTA DETALLADA DEL INVENTARIO DEL CLIENTE
         // =======================================================
         public class InventarioClienteItem
         {
@@ -731,8 +728,6 @@ namespace BITATEL_prueba1.Controllers
             public string EstadoMora { get; set; }
             public string Contrato { get; set; }
             public bool EstaVencido { get; set; }
-
-            // ¡NUEVOS CAMPOS FINANCIEROS PARA EL DESGLOSE!
             public decimal MultaDiaria { get; set; }
             public int DiasMora { get; set; }
             public decimal TotalMora { get; set; }
@@ -757,7 +752,6 @@ namespace BITATEL_prueba1.Controllers
                     nombreCliente = cmdCli.ExecuteScalar()?.ToString();
                 }
 
-                // MAGIA AQUÍ: a.id_estado IN (2, 3) permite ver Producción y Averiados
                 string sql = @"
                     SELECT 
                         a.id_activo, a.etiqueta_activo, cat.nombre_categoria AS componente, a.marca, a.modelo, a.serie, 
@@ -833,7 +827,7 @@ namespace BITATEL_prueba1.Controllers
         }
 
         // =======================================================
-        // ACCIONES DE LOTE: TRASLADO Y GARANTÍA (SWAP)
+        // ACCIONES DE LOTE: TRASLADO Y GARANTÍA
         // =======================================================
         [HttpPost]
         public JsonResult EjecutarTraslado(List<int> ids, int idUbicacionDestino)
@@ -1025,9 +1019,6 @@ namespace BITATEL_prueba1.Controllers
             return Json(new { success = true });
         }
 
-        // =======================================================
-        // CREACIÓN DE NUEVOS USUARIOS
-        // =======================================================
         [HttpGet]
         public ActionResult NuevoUsuario()
         {
@@ -1156,7 +1147,7 @@ namespace BITATEL_prueba1.Controllers
             public decimal ValorTotalHardware { get; set; }
             public string ProximoVencimiento { get; set; }
             public int EquiposEnMora { get; set; }
-            public decimal MoraTotalAcumulada { get; set; } // ¡NUEVO CAMPO FINANCIERO!
+            public decimal MoraTotalAcumulada { get; set; }
         }
 
         public ActionResult Contratos()
@@ -1169,7 +1160,6 @@ namespace BITATEL_prueba1.Controllers
             using (var con = obj.ObtenerConexion())
             {
                 con.Open();
-                // Ahora la consulta SQL calcula la suma de (Días de retraso * Multa diaria)
                 string sql = @"
                     SELECT 
                         c.id_cliente,
@@ -1218,8 +1208,6 @@ namespace BITATEL_prueba1.Controllers
             return View(lista);
         }
 
-
-
         // =======================================================
         // MÓDULO DE INFRAESTRUCTURA (SEDES Y UBICACIONES)
         // =======================================================
@@ -1245,12 +1233,11 @@ namespace BITATEL_prueba1.Controllers
             if (!EsAdmin()) return RedirectToAction("Index", "Login");
 
             var lista = new List<ClienteSedesItem>();
-            var listaClientes = new List<SelectListItem>(); // Para el Modal de Nueva Sede
+            var listaClientes = new List<SelectListItem>();
 
             using (var con = new ConexionBD().ObtenerConexion())
             {
                 con.Open();
-
                 string sql = @"
                     SELECT 
                         c.id_cliente, 
@@ -1405,7 +1392,7 @@ namespace BITATEL_prueba1.Controllers
                         int count = (int)cmdCheck.ExecuteScalar();
                         if (count > 0)
                         {
-                            return Json(new { success = false, message = "No se puede eliminar esta Sede porque tiene Ambientes y/o Equipos asignados a ella. Retire los equipos primero." });
+                            return Json(new { success = false, message = "No se puede eliminar esta Sede porque tiene Ambientes asignados." });
                         }
                     }
 
@@ -1422,7 +1409,7 @@ namespace BITATEL_prueba1.Controllers
         }
 
         // =======================================================
-        // CRUD DE AMBIENTES (UBICACIONES INTERNAS POR SEDE)
+        // CRUD DE AMBIENTES
         // =======================================================
         public class AmbienteItem
         {
@@ -1553,7 +1540,7 @@ namespace BITATEL_prueba1.Controllers
                     {
                         cmdCheck.Parameters.AddWithValue("@id", idUbicacion);
                         if ((int)cmdCheck.ExecuteScalar() > 0)
-                            return Json(new { success = false, message = "No se puede eliminar este Ambiente porque hay activos físicos registrados aquí. Realice un traslado primero." });
+                            return Json(new { success = false, message = "No se puede eliminar. Hay activos físicos registrados aquí." });
                     }
 
                     using (var cmd = new SqlCommand("DELETE FROM Ubicaciones_Internas WHERE id_ubicacion = @id", con))
@@ -1568,7 +1555,7 @@ namespace BITATEL_prueba1.Controllers
         }
 
         // =======================================================
-        // MÓDULO DE COBRANZAS Y DEUDAS (NUEVO)
+        // MÓDULO DE COBRANZAS Y DEUDAS
         // =======================================================
         public class ClienteDeudaItem
         {
@@ -1625,7 +1612,6 @@ namespace BITATEL_prueba1.Controllers
             using (var con = new ConexionBD().ObtenerConexion())
             {
                 con.Open();
-                // Agrupamos por contrato (fecha de despacho) para ver qué lotes están vencidos
                 string sql = @"
                     SELECT 
                         CAST(r.fecha_ingreso AS DATE) AS fecha_despacho,
@@ -1647,7 +1633,6 @@ namespace BITATEL_prueba1.Controllers
                             DateTime fDespacho = Convert.ToDateTime(reader["fecha_despacho"]);
                             string contratoGenerado = "CTR-" + idCliente.ToString("D4") + "-" + fDespacho.ToString("yyMMdd");
 
-                            // Aquí se soluciona el aviso IDE0037
                             lista.Add(new
                             {
                                 contrato = contratoGenerado,
@@ -1662,10 +1647,230 @@ namespace BITATEL_prueba1.Controllers
         }
 
         // =======================================================
-        // OTRAS VISTAS (Mantenimiento)
+        // METODO OPTIMIZADO PARA EXTRAER DATOS DEL PDF SIN ERROR
         // =======================================================
-        public ActionResult Solicitudes() { if (!EsAdmin()) return RedirectToAction("Index", "Login"); return View(); }
-        public ActionResult MiPerfil() { if (!EsAdmin()) return RedirectToAction("Index", "Login"); return View(); }
-        public ActionResult Configuracion() { if (!EsAdmin()) return RedirectToAction("Index", "Login"); return View(); }
+        [HttpGet]
+        public JsonResult ObtenerDetallesPorContrato(int idCliente, string fechaDespacho)
+        {
+            try
+            {
+                var lista = new List<object>();
+                ConexionBD obj = new ConexionBD();
+
+                using (var con = obj.ObtenerConexion())
+                {
+                    string query = @"
+                        SELECT a.id_activo, a.etiqueta_activo, a.modelo, c.nombre_categoria, a.marca, 
+                               r.costo_pactado_usd, r.multa_diaria_usd, 
+                               ISNULL(u.nombre_sede, '') + ' - ' + ISNULL(ui.nombre_especifico, '') as sede, 
+                               CONVERT(varchar, r.fecha_vencimiento, 103) as fechaVencimiento
+                        FROM Registro_Alquiler r
+                        JOIN Activos a ON r.id_activo_actual = a.id_activo
+                        JOIN Categorias c ON a.id_categoria = c.id_categoria
+                        LEFT JOIN Ubicaciones_Internas ui ON a.id_ubicacion = ui.id_ubicacion
+                        LEFT JOIN Sedes u ON ui.id_sede = u.id_sede
+                        WHERE r.id_cliente = @idCli 
+                        AND CAST(r.fecha_ingreso AS DATE) = CONVERT(DATE, @fecha, 103)";
+
+                    SqlCommand cmd = new SqlCommand(query, con);
+                    cmd.Parameters.AddWithValue("@idCli", idCliente);
+                    cmd.Parameters.AddWithValue("@fecha", fechaDespacho);
+
+                    con.Open();
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            lista.Add(new
+                            {
+                                idActivo = reader["id_activo"],
+                                textoActivo = reader["etiqueta_activo"].ToString() + " - " + reader["modelo"].ToString(),
+                                categoria = reader["nombre_categoria"].ToString(),
+                                marca = reader["marca"].ToString(),
+                                costoPactado = Convert.ToDecimal(reader["costo_pactado_usd"]),
+                                multaDiaria = Convert.ToDecimal(reader["multa_diaria_usd"]),
+                                sede = reader["sede"].ToString(),
+                                fechaVencimiento = reader["fechaVencimiento"].ToString()
+                            });
+                        }
+                    }
+                }
+                return Json(lista, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                // Si la BD falla, devolvemos el error al Frontend en vez de crashear Visual Studio
+                return Json(new { error = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // =======================================================
+        // MÓDULO DE CONFIGURACIÓN Y SEGURIDAD
+        // =======================================================
+
+        [HttpGet]
+        public ActionResult Configuracion()
+        {
+            if (!EsAdmin()) return RedirectToAction("Index", "Login");
+            return View();
+        }
+        [HttpPost]
+        public JsonResult ActualizarPassword(string actual, string nueva)
+        {
+            // Solución al IDE0019: Uso de "Pattern Matching" recomendado por Visual Studio
+            if (!(Session["UsuarioActivo"] is Usuario user))
+            {
+                return Json(new { success = false, message = "Sesión expirada. Inicie sesión nuevamente." });
+            }
+
+            try
+            {
+                using (var con = new ConexionBD().ObtenerConexion())
+                {
+                    con.Open();
+
+                    // 1. Verificamos que la contraseña actual ingresada sea correcta (Cotejamos contra SQL)
+                    string sqlCheck = "SELECT COUNT(*) FROM Usuarios WHERE id_usuario = @id AND password_hash = @actual";
+                    using (var cmdCheck = new SqlCommand(sqlCheck, con))
+                    {
+                        cmdCheck.Parameters.AddWithValue("@id", user.IdUsuario);
+                        cmdCheck.Parameters.AddWithValue("@actual", actual.Trim());
+
+                        int coincidencias = (int)cmdCheck.ExecuteScalar();
+                        if (coincidencias == 0)
+                        {
+                            return Json(new { success = false, message = "La contraseña actual es incorrecta." });
+                        }
+                    }
+
+                    // 2. Si es correcta, actualizamos a la nueva contraseña
+                    string sqlUpdate = "UPDATE Usuarios SET password_hash = @nueva WHERE id_usuario = @id";
+                    using (var cmdUpdate = new SqlCommand(sqlUpdate, con))
+                    {
+                        cmdUpdate.Parameters.AddWithValue("@id", user.IdUsuario);
+                        cmdUpdate.Parameters.AddWithValue("@nueva", nueva.Trim());
+                        cmdUpdate.ExecuteNonQuery();
+                    }
+
+                    // Nota: Se eliminó el re-guardado en la variable "user.Password" para evitar el error CS1061.
+                    // Ya está modificado en la Base de Datos, que es lo que realmente importa.
+                }
+
+                return Json(new { success = true, message = "Contraseña actualizada correctamente." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error de base de datos: " + ex.Message });
+            }
+        }
+
+        // =======================================================
+        // MÓDULO DE BACKUP Y RESTAURACIÓN DE BD
+        // =======================================================
+        [HttpPost]
+        public ActionResult GenerarBackup()
+        {
+            if (!EsAdmin()) return new HttpStatusCodeResult(401, "No autorizado");
+            try
+            {
+                // 1. Creamos una carpeta temporal
+                string tempDir = @"C:\Backups_BITATEL\Temp";
+                if (!System.IO.Directory.Exists(tempDir))
+                    System.IO.Directory.CreateDirectory(tempDir);
+
+                string fileName = $"Backup_BITATEL_{DateTime.Now:yyyyMMdd_HHmmss}.bak";
+                string fullPath = System.IO.Path.Combine(tempDir, fileName);
+
+                using (var con = new ConexionBD().ObtenerConexion())
+                {
+                    con.Open();
+                    string dbName = con.Database;
+
+                    // 2. Le pedimos a SQL que guarde el backup en esa ruta
+                    string sql = $"BACKUP DATABASE [{dbName}] TO DISK = '{fullPath}' WITH FORMAT, MEDIANAME = 'BITATEL_SQLServer', NAME = 'Full Backup';";
+                    using (var cmd = new SqlCommand(sql, con))
+                    {
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+
+                // 3. Leemos el archivo físico y lo convertimos a Bytes
+                byte[] fileBytes = System.IO.File.ReadAllBytes(fullPath);
+
+                // 4. Borramos el archivo temporal para no llenar el disco C de la universidad
+                System.IO.File.Delete(fullPath);
+
+                // 5. Enviamos el archivo directamente al navegador web para que el usuario lo descargue
+                return File(fileBytes, "application/octet-stream", fileName);
+            }
+            catch (Exception ex)
+            {
+                return new HttpStatusCodeResult(500, ex.Message);
+            }
+        }
+
+        [HttpPost]
+        public JsonResult RestaurarBackup(System.Web.HttpPostedFileBase archivoBackup)
+        {
+            if (!EsAdmin()) return Json(new { success = false, message = "No autorizado" });
+            if (archivoBackup == null || archivoBackup.ContentLength == 0)
+                return Json(new { success = false, message = "No se seleccionó ningún archivo." });
+
+            try
+            {
+                // Guardamos el archivo temporalmente para que SQL Server pueda leerlo
+                string tempDir = @"C:\Backups_BITATEL\TempRestore";
+                if (!System.IO.Directory.Exists(tempDir)) System.IO.Directory.CreateDirectory(tempDir);
+
+                string tempPath = System.IO.Path.Combine(tempDir, "Restore_" + archivoBackup.FileName);
+                archivoBackup.SaveAs(tempPath);
+
+                // IMPORTANTE: Para restaurar, debemos conectarnos a la base de datos "master"
+                SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder(new ConexionBD().ObtenerConexion().ConnectionString);
+                string dbName = builder.InitialCatalog;
+                builder.InitialCatalog = "master"; // Apuntamos al master
+
+                using (var conMaster = new SqlConnection(builder.ConnectionString))
+                {
+                    conMaster.Open();
+                    // 1. Desconectar forzosamente a todos los usuarios
+                    string sqlSingleUser = $"ALTER DATABASE [{dbName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;";
+                    using (var cmd1 = new SqlCommand(sqlSingleUser, conMaster)) { cmd1.ExecuteNonQuery(); }
+
+                    // 2. Restaurar la base de datos reemplazando todo
+                    string sqlRestore = $"RESTORE DATABASE [{dbName}] FROM DISK = '{tempPath}' WITH REPLACE;";
+                    using (var cmd2 = new SqlCommand(sqlRestore, conMaster)) { cmd2.ExecuteNonQuery(); }
+
+                    // 3. Volver a permitir múltiples usuarios
+                    string sqlMultiUser = $"ALTER DATABASE [{dbName}] SET MULTI_USER;";
+                    using (var cmd3 = new SqlCommand(sqlMultiUser, conMaster)) { cmd3.ExecuteNonQuery(); }
+                }
+
+                // Limpiamos el archivo temporal
+                System.IO.File.Delete(tempPath);
+
+                // Destruimos la sesión porque los datos de acceso pudieron haber cambiado
+                Session.Clear();
+
+                return Json(new { success = true, message = "Base de datos restaurada correctamente." });
+            }
+            catch (Exception ex)
+            {
+                // Intentar devolver la base de datos a MULTI_USER en caso de fallo crítico
+                try
+                {
+                    SqlConnectionStringBuilder b = new SqlConnectionStringBuilder(new ConexionBD().ObtenerConexion().ConnectionString) { InitialCatalog = "master" };
+                    using (var rec = new SqlConnection(b.ConnectionString))
+                    {
+                        rec.Open();
+                        new SqlCommand($"ALTER DATABASE [{new ConexionBD().ObtenerConexion().Database}] SET MULTI_USER;", rec).ExecuteNonQuery();
+                    }
+                }
+                catch { /* Ignorar error secundario */ }
+
+                return Json(new { success = false, message = "Error de restauración: " + ex.Message });
+            }
+        }
+
     }
 }

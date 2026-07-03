@@ -1,6 +1,12 @@
-﻿@{
-    if (Session["UsuarioActivo"] == null) { Response.Redirect(Url.Action("Index", "Login")); }
-    var usuarioLogueado = Session["UsuarioActivo"] as BITATEL_prueba1.Models.Usuario;
+﻿@using BITATEL_prueba1.Models
+@{
+    // Corrección de ruta estática para evitar el error CS0012
+    if (Session["UsuarioActivo"] == null)
+    {
+        Response.Redirect("~/Login/Index");
+    }
+
+    var usuarioLogueado = Session["UsuarioActivo"] as Usuario;
     string nombreMostrar = usuarioLogueado != null ? usuarioLogueado.NombreCompleto : "Cliente";
 }
 <!DOCTYPE html>
@@ -9,7 +15,87 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portal Cliente - BITATEL</title>
+
+    <script>
+        // DOMContentLoaded asegura que toda la vista exista antes de aplicar el color
+        document.addEventListener("DOMContentLoaded", function () {
+            if (localStorage.getItem('tema_bitatel') === 'dark') {
+                document.body.classList.add('dark-mode');
+
+                // Si el usuario entra a Configuración, mantener el botón Switch encendido visualmente
+                var switchTema = document.getElementById('chkTema');
+                if (switchTema) {
+                    switchTema.checked = true;
+                }
+            }
+        });
+
+        function alternarModoOscuro() {
+            document.body.classList.toggle('dark-mode');
+            if (document.body.classList.contains('dark-mode')) {
+                localStorage.setItem('tema_bitatel', 'dark');
+            } else {
+                localStorage.setItem('tema_bitatel', 'light');
+            }
+        }
+    </script>
+
     <style>
+        /* MOTOR DE MODO OSCURO GLOBAL */
+        body.dark-mode {
+            background-color: #0f172a !important;
+            color: #f1f5f9 !important;
+        }
+
+            body.dark-mode .sidebar {
+                background-color: #0f172a !important;
+                border-right: 1px solid #1e293b !important;
+            }
+
+            body.dark-mode .topbar {
+                background-color: #1e293b !important;
+                border-bottom: 1px solid #0f172a !important;
+            }
+
+            body.dark-mode .content-area {
+                background-color: #020617 !important;
+            }
+
+            body.dark-mode [style*="background: white"],
+            body.dark-mode [style*="background-color: white"],
+            body.dark-mode [style*="background:#ffffff"] {
+                background-color: #1e293b !important;
+                border-color: #334155 !important;
+                color: #f1f5f9 !important;
+            }
+
+            body.dark-mode [style*="color: #333"], body.dark-mode [style*="color: #444"],
+            body.dark-mode [style*="color: #555"], body.dark-mode [style*="color: #666"],
+            body.dark-mode [style*="color: #1f2937"] {
+                color: #cbd5e1 !important;
+            }
+
+            body.dark-mode input, body.dark-mode select, body.dark-mode textarea {
+                background-color: #0f172a !important;
+                color: #f1f5f9 !important;
+                border-color: #334155 !important;
+            }
+
+            body.dark-mode th {
+                background-color: #0f172a !important;
+                color: #94a3b8 !important;
+                border-bottom-color: #334155 !important;
+            }
+
+            body.dark-mode td {
+                border-bottom-color: #1e293b !important;
+            }
+
+            body.dark-mode tr:hover {
+                background-color: #0f172a !important;
+            }
+
+        /* ESTILOS BASE */
         body {
             margin: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -52,7 +138,6 @@
             color: white;
         }
 
-        /* Menús del cliente */
         .menu-item {
             padding: 15px 20px;
             text-decoration: none;
@@ -167,6 +252,17 @@
                 transition: background 0.2s ease;
             }
 
+                /* CORRECCIÓN DE TAMAÑO DE ICONOS EN DROPDOWN */
+                .dropdown-content a svg {
+                    width: 18px;
+                    height: 18px;
+                    stroke: currentColor;
+                    fill: none;
+                    stroke-width: 2;
+                    stroke-linecap: round;
+                    stroke-linejoin: round;
+                }
+
                 .dropdown-content a:hover {
                     background-color: #f8fafc;
                     color: #3b82f6;
@@ -181,7 +277,7 @@
             flex: 1;
             overflow-y: auto;
             overflow-x: hidden;
-            background-color: #f8fafc;
+            background-color: #f4f7f6;
         }
     </style>
 </head>
@@ -194,7 +290,6 @@
                 <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg> Dashboard
             </a>
 
-            <!-- CORRECCIÓN DE ENLACES -->
             <a href="@Url.Action("MisActivos", "Cliente")" class="menu-item">
                 <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg> Mis Equipos
             </a>
@@ -207,7 +302,7 @@
                 <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg> Mis Sedes
             </a>
 
-            <a href="@Url.Action("Deudas", "Cliente")" class="menu-item" style="color: #fca5a5;">
+            <a href="@Url.Action("Cobranzas", "Cliente")" class="menu-item" style="color: #fca5a5;">
                 <svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> Facturación y Pagos
             </a>
         </div>
@@ -224,7 +319,6 @@
                     <button onclick="toggleUserMenu(event)" class="topbar-btn"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></button>
                     <div id="userDropdown" class="dropdown-content">
                         <a href="@Url.Action("Configuracion", "Cliente")"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>Configuración</a>
-                        <a href="@Url.Action("MiPerfil", "Cliente")"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>Mi Perfil</a>
                         <a href="@Url.Action("Salir", "Login")" onclick="return confirm('¿Seguro que deseas salir?');" style="color:#dc2626;"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>Cerrar Sesión</a>
                     </div>
                 </div>

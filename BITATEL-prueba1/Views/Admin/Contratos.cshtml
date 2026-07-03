@@ -5,6 +5,7 @@
 }
 
 <style>
+    /* ESTILOS DEL MODAL DE RESUMEN */
     .modal-overlay {
         display: none;
         position: fixed;
@@ -47,10 +48,71 @@
         color: #1e293b;
         font-weight: bold;
     }
+
+    /* ESTILOS DEL BOTÓN PDF */
+    .btn-pdf {
+        background: #fff1f2;
+        color: #e11d48;
+        border: 1px solid #fecdd3;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-weight: bold;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+    }
+
+        .btn-pdf:hover {
+            background: #ffe4e6;
+            color: #be123c;
+        }
+
+    /* ESTILOS DE LA PANTALLA DE ESPERA (LOADING) - CORREGIDO PARA ASP.NET RAZOR */
+    #loading-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.9);
+        z-index: 9999;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .spinner {
+        border: 6px solid #f3f3f3;
+        border-top: 6px solid #d97706;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        animation: spin 1s linear infinite;
+        margin-bottom: 15px;
+    }
+    /* Se utiliza doble arroba para escapar el código en ASP.NET */
+    @@keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
 </style>
 
-<div style="max-width: 1400px; margin: 0 auto; padding-bottom: 40px;">
+<div id="loading-overlay">
+    <div class="spinner"></div>
+    <h3 style="color: #333; margin: 0;">Generando Documento PDF...</h3>
+    <p style="color: #666;">Por favor, no cierre esta ventana. Consultando Base de Datos.</p>
+</div>
 
+<div style="max-width: 1400px; margin: 0 auto; padding-bottom: 40px;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
         <div>
             <h2 style="color: #333; margin: 0;">Contratos y Lotes de Producción</h2>
@@ -85,33 +147,32 @@
                     <tr class="item-row" style="border-bottom: 1px solid #f1f5f9; transition: background 0.2s; @(item.EquiposEnMora > 0 ? "background-color: #fef2f2;" : "")" onmouseover="this.style.backgroundColor='@(item.EquiposEnMora > 0 ? "#fee2e2" : "#f8fafc")'" onmouseout="this.style.backgroundColor='@(item.EquiposEnMora > 0 ? "#fef2f2" : "transparent")'">
 
                         <td style="padding: 15px;">
-                            <span style="background: #e0e7ff; color: #3b82f6; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-family: monospace;">@item.IdContratoGenerado</span>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="background: #e0e7ff; color: #3b82f6; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-family: monospace;">@item.IdContratoGenerado</span>
+
+                                <button type="button" class="btn-pdf" onclick="descargarPDFHistorico('@item.IdContratoGenerado', '@item.Empresa', '@item.FechaDespacho', @item.IdCliente)">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+                                    Generar PDF
+                                </button>
+                            </div>
                         </td>
 
                         <td style="padding: 15px;">
                             <div style="font-weight: bold; color: #1e293b;">@item.Empresa</div>
                             <div style="color: #64748b; font-size: 0.85rem;">RUC: @item.Ruc</div>
                         </td>
-
                         <td style="padding: 15px; text-align: center; color: #475569;">@item.FechaDespacho</td>
-
-                        <td style="padding: 15px; text-align: center;">
-                            <span style="font-weight: bold; color: #1e293b;">@item.EquiposAlquilados Activos</span>
-                        </td>
-
+                        <td style="padding: 15px; text-align: center;"><span style="font-weight: bold; color: #1e293b;">@item.EquiposAlquilados Activos</span></td>
                         <td style="padding: 15px; text-align: center;">
                             @if (item.EquiposEnMora > 0)
                             {
-                                <span style="color: #dc2626; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 5px;">
-                                    ⚠️ @item.EquiposEnMora en Mora
-                                </span>
+                                <span style="color: #dc2626; font-weight: bold;">⚠️ @item.EquiposEnMora en Mora</span>
                             }
                             else
                             {
                                 <span style="color: #10b981; font-weight: bold;">✅ Al Día</span>
                             }
                         </td>
-
                         <td style="padding: 15px; text-align: center;">
                             <button onclick="abrirResumen('@item.IdContratoGenerado', '@item.Empresa', @item.EquiposAlquilados, @item.ValorTotalHardware, @item.EquiposEnMora, @item.MoraTotalAcumulada, @item.IdCliente)" style="background: white; color: #3b82f6; border: 1px solid #bfdbfe; padding: 6px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.backgroundColor='#eff6ff'">
                                 Ver Detalle ➔
@@ -124,7 +185,6 @@
     </div>
 </div>
 
-<!-- MODAL VISTA GENERAL DEL CONTRATO -->
 <div id="modalResumen" class="modal-overlay">
     <div class="modal-box" onclick="event.stopPropagation()">
         <h3 style="margin-top:0; color:#1e40af; border-bottom:1px solid #eee; padding-bottom:10px; display:flex; align-items:center; gap:8px;">
@@ -163,12 +223,13 @@
     </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
 <script>
     function filtrarTablaUniversal() {
         var texto = document.getElementById("txtBuscarUniversal").value.toLowerCase();
-        document.querySelectorAll(".item-row").forEach(fila => {
-            fila.style.display = fila.textContent.toLowerCase().includes(texto) ? "" : "none";
-        });
+        document.querySelectorAll(".item-row").forEach(fila => { fila.style.display = fila.textContent.toLowerCase().includes(texto) ? "" : "none"; });
     }
 
     function abrirResumen(contrato, empresa, volumen, valor, equiposMora, deudaMora, idCliente) {
@@ -179,9 +240,78 @@
         document.getElementById('mdlEquiposMora').innerText = equiposMora;
         document.getElementById('mdlDeudaMora').innerText = "$ " + deudaMora.toFixed(2);
 
-        // El botón del modal lleva al inventario del cliente
         document.getElementById('btnVerInventario').href = '@Url.Action("InventarioCliente", "Admin")?id=' + idCliente;
-
         document.getElementById('modalResumen').style.display = 'flex';
+    }
+
+    // ==============================================================================
+    // GENERACIÓN DE PDF HISTÓRICO (DISEÑO VERTICAL DINÁMICO)
+    // ==============================================================================
+    function descargarPDFHistorico(idContrato, empresa, fInicio, idCliente) {
+        document.getElementById("loading-overlay").style.display = "flex";
+
+        fetch(`@Url.Action("ObtenerDetallesPorContrato", "Admin")?idCliente=${idCliente}&fechaDespacho=${fInicio}`)
+        .then(res => res.json())
+        .then(data => {
+            if(data.error) {
+                document.getElementById("loading-overlay").style.display = "none";
+                alert("Error en el Servidor: " + data.error);
+                return;
+            }
+            if(!data || data.length === 0) {
+                document.getElementById("loading-overlay").style.display = "none";
+                alert("No se encontraron equipos registrados para este contrato.");
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.setFont("helvetica", "bold"); doc.setFontSize(18); doc.text("BITATEL COMPONENTES S.A.C.", 14, 20);
+            doc.setFontSize(11); doc.setFont("helvetica", "normal"); doc.text("SISTEMA DE GESTIÓN LOGÍSTICA - DETALLE DE DESPACHO HISTÓRICO", 14, 26);
+            doc.line(14, 29, 196, 29);
+
+            const sede = data[0].sede || "Sede Registrada";
+            const fVence = data[0].fechaVencimiento || "No definida";
+
+            doc.setFont("helvetica", "bold"); doc.text("Resumen Contractual de Operación:", 14, 38);
+            doc.setFont("helvetica", "normal");
+
+            // 1. Imprime el cliente en la primera línea
+            doc.text(`Cliente Destinatario: ${empresa}`, 14, 45);
+
+            // 2. MAGIA: Si la sede es larguísima, splitTextToSize la rompe en varios párrafos (Límite: 180px)
+            const lineasSede = doc.splitTextToSize(`Sede Física Asignada: ${sede}`, 180);
+            doc.text(lineasSede, 14, 52);
+
+            // 3. Calculamos la posición de las fechas multiplicando la cantidad de líneas de la sede
+            let yFechas = 52 + (lineasSede.length * 7);
+
+            doc.text(`Fecha Inicio Alquiler: ${fInicio}`, 14, yFechas);
+            doc.text(`Fecha Vencimiento (Fin): ${fVence}`, 100, yFechas); // La segunda fecha va al lado derecho
+
+            const columnas = ["ID Base", "Componente Específico", "Categoría", "Marca", "Costo Mensual", "Mora Diaria"];
+            const filas = [];
+            let acumulado = 0;
+
+            data.forEach(x => {
+                acumulado += x.costoPactado;
+                filas.push([x.idActivo, x.textoActivo, x.categoria, x.marca, `$ ${x.costoPactado.toFixed(2)}`, `$ ${x.multaDiaria.toFixed(2)}`]);
+            });
+            filas.push(["", "TOTAL VALORIZADO MENSUAL DEL LOTE:", "", "", `$ ${acumulado.toFixed(2)}`, ""]);
+
+            // 4. La tabla empieza debajo de la posición de las fechas
+            doc.autoTable({
+                head: [columnas], body: filas, startY: yFechas + 10, theme: 'striped',
+                headStyles: { fillColor: [217, 119, 6] }, styles: { fontSize: 8.5 }
+            });
+
+            doc.save(`Detalle_Contrato_${idContrato}.pdf`);
+            document.getElementById("loading-overlay").style.display = "none";
+        })
+        .catch(error => {
+            document.getElementById("loading-overlay").style.display = "none";
+            alert("Error: Problema de conexión de red.");
+        });
     }
 </script>

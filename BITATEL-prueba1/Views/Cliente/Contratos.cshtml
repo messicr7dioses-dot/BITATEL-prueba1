@@ -47,7 +47,67 @@
         color: #1e293b;
         font-weight: bold;
     }
+
+    .btn-pdf {
+        background: #fff1f2;
+        color: #e11d48;
+        border: 1px solid #fecdd3;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-weight: bold;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+    }
+
+        .btn-pdf:hover {
+            background: #ffe4e6;
+            color: #be123c;
+        }
+
+    #loading-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.9);
+        z-index: 9999;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .spinner {
+        border: 6px solid #f3f3f3;
+        border-top: 6px solid #3b82f6;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        animation: spin 1s linear infinite;
+        margin-bottom: 15px;
+    }
+
+    @@keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
 </style>
+
+<div id="loading-overlay">
+    <div class="spinner"></div>
+    <h3 style="color: #333; margin: 0;">Generando Documento PDF...</h3>
+    <p style="color: #666;">Por favor, no cierre esta ventana.</p>
+</div>
 
 <div style="max-width: 1400px; margin: 0 auto; padding-bottom: 40px;">
 
@@ -77,7 +137,15 @@
                 @foreach (var item in Model)
                 {
                     <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.2s; @(item.EquiposEnMora > 0 ? "background-color: #fef2f2;" : "")">
-                        <td style="padding: 15px;"><span style="background: #e0e7ff; color: #3b82f6; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-family: monospace;">@item.IdContratoGenerado</span></td>
+                        <td style="padding: 15px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="background: #e0e7ff; color: #3b82f6; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-family: monospace;">@item.IdContratoGenerado</span>
+                                <button type="button" class="btn-pdf" onclick="descargarPDFHistorico('@item.IdContratoGenerado', '@item.FechaDespacho')">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+                                    Generar PDF
+                                </button>
+                            </div>
+                        </td>
                         <td style="padding: 15px; text-align: center; color: #475569;">@item.FechaDespacho</td>
                         <td style="padding: 15px; text-align: center;"><span style="font-weight: bold; color: #1e293b;">@item.EquiposAlquilados Activos</span></td>
                         <td style="padding: 15px; text-align: center;">
@@ -120,6 +188,9 @@
     </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
 <script>
     function abrirResumen(contrato, volumen, valor, equiposMora, deudaMora) {
         document.getElementById('mdlContrato').innerText = contrato;
@@ -128,5 +199,71 @@
         document.getElementById('mdlEquiposMora').innerText = equiposMora;
         document.getElementById('mdlDeudaMora').innerText = "$ " + deudaMora.toFixed(2);
         document.getElementById('modalResumen').style.display = 'flex';
+    }
+
+    function descargarPDFHistorico(idContrato, fInicio) {
+        document.getElementById("loading-overlay").style.display = "flex";
+
+        fetch(`@Url.Action("ObtenerDetallesPorContratoCliente", "Cliente")?fechaDespacho=${fInicio}`)
+        .then(res => res.json())
+        .then(data => {
+            if(data.error) {
+                document.getElementById("loading-overlay").style.display = "none";
+                alert("Error en el Servidor: " + data.error);
+                return;
+            }
+            if(!data || data.length === 0) {
+                document.getElementById("loading-overlay").style.display = "none";
+                alert("No se encontraron equipos registrados para este contrato.");
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.setFont("helvetica", "bold"); doc.setFontSize(18); doc.text("BITATEL COMPONENTES S.A.C.", 14, 20);
+            doc.setFontSize(11); doc.setFont("helvetica", "normal"); doc.text("SISTEMA DE GESTIÓN LOGÍSTICA - DETALLE DE CONTRATO", 14, 26);
+            doc.line(14, 29, 196, 29);
+
+            const empresa = data[0].empresa;
+            const sede = data[0].sede || "Sede Registrada";
+            const fVence = data[0].fechaVencimiento || "No definida";
+
+            doc.setFont("helvetica", "bold"); doc.text("Resumen Contractual de Operación:", 14, 38);
+            doc.setFont("helvetica", "normal");
+
+            doc.text(`Cliente Destinatario: ${empresa}`, 14, 45);
+
+            // MAGIA: El texto largo se divide dinámicamente
+            const lineasSede = doc.splitTextToSize(`Sede Física Asignada: ${sede}`, 180);
+            doc.text(lineasSede, 14, 52);
+
+            let yFechas = 52 + (lineasSede.length * 7);
+
+            doc.text(`Fecha Inicio Alquiler: ${fInicio}`, 14, yFechas);
+            doc.text(`Fecha Vencimiento (Fin): ${fVence}`, 100, yFechas);
+
+            const columnas = ["ID Base", "Componente Específico", "Categoría", "Marca", "Costo Mensual", "Mora Diaria"];
+            const filas = [];
+            let acumulado = 0;
+
+            data.forEach(x => {
+                acumulado += x.costoPactado;
+                filas.push([x.idActivo, x.textoActivo, x.categoria, x.marca, `$ ${x.costoPactado.toFixed(2)}`, `$ ${x.multaDiaria.toFixed(2)}`]);
+            });
+            filas.push(["", "TOTAL VALORIZADO MENSUAL DEL LOTE:", "", "", `$ ${acumulado.toFixed(2)}`, ""]);
+
+            doc.autoTable({
+                head: [columnas], body: filas, startY: yFechas + 10, theme: 'striped',
+                headStyles: { fillColor: [217, 119, 6] }, styles: { fontSize: 8.5 }
+            });
+
+            doc.save(`Detalle_Contrato_${idContrato}.pdf`);
+            document.getElementById("loading-overlay").style.display = "none";
+        })
+        .catch(error => {
+            document.getElementById("loading-overlay").style.display = "none";
+            alert("Error: Problema de conexión de red.");
+        });
     }
 </script>
