@@ -1809,68 +1809,7 @@ namespace BITATEL_prueba1.Controllers
             }
         }
 
-        [HttpPost]
-        public JsonResult RestaurarBackup(System.Web.HttpPostedFileBase archivoBackup)
-        {
-            if (!EsAdmin()) return Json(new { success = false, message = "No autorizado" });
-            if (archivoBackup == null || archivoBackup.ContentLength == 0)
-                return Json(new { success = false, message = "No se seleccionó ningún archivo." });
-
-            try
-            {
-                // Guardamos el archivo temporalmente para que SQL Server pueda leerlo
-                string tempDir = @"C:\Backups_BITATEL\TempRestore";
-                if (!System.IO.Directory.Exists(tempDir)) System.IO.Directory.CreateDirectory(tempDir);
-
-                string tempPath = System.IO.Path.Combine(tempDir, "Restore_" + archivoBackup.FileName);
-                archivoBackup.SaveAs(tempPath);
-
-                // IMPORTANTE: Para restaurar, debemos conectarnos a la base de datos "master"
-                SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder(new ConexionBD().ObtenerConexion().ConnectionString);
-                string dbName = builder.InitialCatalog;
-                builder.InitialCatalog = "master"; // Apuntamos al master
-
-                using (var conMaster = new SqlConnection(builder.ConnectionString))
-                {
-                    conMaster.Open();
-                    // 1. Desconectar forzosamente a todos los usuarios
-                    string sqlSingleUser = $"ALTER DATABASE [{dbName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;";
-                    using (var cmd1 = new SqlCommand(sqlSingleUser, conMaster)) { cmd1.ExecuteNonQuery(); }
-
-                    // 2. Restaurar la base de datos reemplazando todo
-                    string sqlRestore = $"RESTORE DATABASE [{dbName}] FROM DISK = '{tempPath}' WITH REPLACE;";
-                    using (var cmd2 = new SqlCommand(sqlRestore, conMaster)) { cmd2.ExecuteNonQuery(); }
-
-                    // 3. Volver a permitir múltiples usuarios
-                    string sqlMultiUser = $"ALTER DATABASE [{dbName}] SET MULTI_USER;";
-                    using (var cmd3 = new SqlCommand(sqlMultiUser, conMaster)) { cmd3.ExecuteNonQuery(); }
-                }
-
-                // Limpiamos el archivo temporal
-                System.IO.File.Delete(tempPath);
-
-                // Destruimos la sesión porque los datos de acceso pudieron haber cambiado
-                Session.Clear();
-
-                return Json(new { success = true, message = "Base de datos restaurada correctamente." });
-            }
-            catch (Exception ex)
-            {
-                // Intentar devolver la base de datos a MULTI_USER en caso de fallo crítico
-                try
-                {
-                    SqlConnectionStringBuilder b = new SqlConnectionStringBuilder(new ConexionBD().ObtenerConexion().ConnectionString) { InitialCatalog = "master" };
-                    using (var rec = new SqlConnection(b.ConnectionString))
-                    {
-                        rec.Open();
-                        new SqlCommand($"ALTER DATABASE [{new ConexionBD().ObtenerConexion().Database}] SET MULTI_USER;", rec).ExecuteNonQuery();
-                    }
-                }
-                catch { /* Ignorar error secundario */ }
-
-                return Json(new { success = false, message = "Error de restauración: " + ex.Message });
-            }
-        }
+      
 
     }
 }

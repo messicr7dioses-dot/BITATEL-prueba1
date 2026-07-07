@@ -87,14 +87,14 @@
 
 <div id="loading-overlay">
     <div class="spinner"></div>
-    <h3 style="margin: 0;">Procesando Base de Datos...</h3>
-    <p style="color: #94a3b8; font-size: 0.9rem;">Por favor, no cierre esta ventana, el servidor se reiniciará en breve.</p>
+    <h3 style="margin: 0;">Generando Copia de Seguridad...</h3>
+    <p style="color: #94a3b8; font-size: 0.9rem;">Por favor, espera un momento.</p>
 </div>
 
 <div style="max-width: 1000px; margin: 0 auto; padding-bottom: 40px;">
     <div style="margin-bottom: 30px;">
-        <h2 style="color: #1f2937; margin: 0;">Configuración y Mantenimiento</h2>
-        <p style="color: #64748b; margin-top: 5px;">Administra tu seguridad, apariencia y los respaldos del servidor.</p>
+        <h2 style="color: #1f2937; margin: 0;">Configuración</h2>
+   
     </div>
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
@@ -132,20 +132,12 @@
             </div>
 
             <div style="background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); padding: 25px; border-top: 4px solid #f59e0b;">
-                <h3 style="margin-top:0; color:#b45309; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">Gestión de Base de Datos</h3>
+                <h3 style="margin-top:0; color:#b45309; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">Copia de Seguridad</h3>
 
                 <div style="margin-top: 15px;">
-                    <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 10px;">Genera una copia de seguridad en formato <b>.bak</b> en tu Disco Local C.</p>
-                    <button onclick="generarBackup()" style="width: 100%; background-color: #f59e0b; color: white; border: none; padding: 12px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-bottom: 20px;">
+                    <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 10px;">Genera un archivo <b>.bak</b> con todos los datos actuales del sistema y descárgalo a tu equipo.</p>
+                    <button onclick="generarBackup()" style="width: 100%; background-color: #f59e0b; color: white; border: none; padding: 12px; border-radius: 5px; font-weight: bold; cursor: pointer; transition: 0.3s;" onmouseover="this.style.backgroundColor='#d97706'" onmouseout="this.style.backgroundColor='#f59e0b'">
                         📥 Exportar Backup Completo
-                    </button>
-
-                    <hr style="border: 0; border-top: 1px dashed #cbd5e1; margin-bottom: 20px;" />
-
-                    <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 10px;">Restaura el sistema desde un archivo de backup previo.</p>
-                    <input type="file" id="fileBackup" accept=".bak" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 5px; margin-bottom: 10px;" />
-                    <button onclick="restaurarBackup()" style="width: 100%; background-color: #334155; color: white; border: none; padding: 12px; border-radius: 5px; font-weight: bold; cursor: pointer;">
-                        ♻️ Importar y Restaurar Sistema
                     </button>
                 </div>
             </div>
@@ -154,14 +146,8 @@
 </div>
 
 <script>
-    // Inicializar switch del tema visual
-    if (localStorage.getItem('tema_bitatel') === 'dark') {
-        document.getElementById('chkTema').checked = true;
-    }
-
-    function ejecutarCambioTema() {
-        alternarModoOscuro(); // Función declarada en el Layout global
-    }
+    if (localStorage.getItem('tema_bitatel') === 'dark') { document.getElementById('chkTema').checked = true; }
+    function ejecutarCambioTema() { alternarModoOscuro(); }
 
     function cambiarPassword() {
         var actual = document.getElementById("txtPasswordActual").value;
@@ -186,66 +172,24 @@
 
     function generarBackup() {
         document.getElementById("loading-overlay").style.display = "flex";
-
-        // Usamos Fetch para traer el archivo pesado
         fetch('@Url.Action("GenerarBackup", "Admin")', { method: 'POST' })
-        .then(response => {
-            if (!response.ok) { throw new Error("Error en el servidor al intentar crear el Backup."); }
-            return response.blob(); // Convertimos la respuesta a un archivo binario (Blob)
-        })
+        .then(res => { if(!res.ok) throw new Error("Error en el servidor"); return res.blob(); })
         .then(blob => {
             document.getElementById("loading-overlay").style.display = "none";
-
-            // Forzamos al navegador a mostrar la ventana de "Guardar Como..."
             var url = window.URL.createObjectURL(blob);
             var a = document.createElement('a');
             a.href = url;
-
-            // Generamos un nombre dinámico con la fecha de hoy
             let d = new Date();
-            let formatoFecha = d.getFullYear().toString() + (d.getMonth()+1).toString().padStart(2,'0') + d.getDate().toString().padStart(2,'0');
-            a.download = "Backup_Completo_BITATEL_" + formatoFecha + ".bak";
-
+            let formato = d.getFullYear().toString() + (d.getMonth()+1).toString().padStart(2,'0') + d.getDate().toString().padStart(2,'0');
+            a.download = "Backup_BITATEL_" + formato + ".bak";
             document.body.appendChild(a);
             a.click();
-
-            // Limpieza de memoria
             a.remove();
             window.URL.revokeObjectURL(url);
-
-            alert("✅ Backup generado y descargado exitosamente. Revisa tus descargas.");
-        })
-        .catch(err => {
-            document.getElementById("loading-overlay").style.display = "none";
-            alert("❌ Error: " + err.message);
-        });
-    }
-
-    function restaurarBackup() {
-        var fileInput = document.getElementById('fileBackup');
-        if (fileInput.files.length === 0) { alert("Por favor, seleccione un archivo .bak primero."); return; }
-
-        if (!confirm("⚠️ ADVERTENCIA CRÍTICA: La restauración sobrescribirá todos los datos actuales del sistema y desconectará a los usuarios. ¿Está completamente seguro?")) return;
-
-        var formData = new FormData();
-        formData.append("archivoBackup", fileInput.files[0]);
-
-        document.getElementById("loading-overlay").style.display = "flex";
-
-        fetch('@Url.Action("RestaurarBackup", "Admin")', {
-            method: 'POST', body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            document.getElementById("loading-overlay").style.display = "none";
-            if(data.success) {
-                alert("✅ Sistema Restaurado con éxito. Se cerrará la sesión por seguridad.");
-                window.location.href = '@Url.Action("Index", "Login")';
-            }
-            else { alert("❌ Error Crítico: " + data.message); }
+            alert("✅ Backup descargado exitosamente.");
         }).catch(err => {
             document.getElementById("loading-overlay").style.display = "none";
-            alert("Error de red. Si el servidor se reinició, la restauración fue exitosa. Actualice la página.");
+            alert("❌ Error al generar el Backup: " + err.message);
         });
     }
 </script>
