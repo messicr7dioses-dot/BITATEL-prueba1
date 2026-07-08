@@ -1,6 +1,5 @@
 ﻿@using BITATEL_prueba1.Models
 @{
-    // Corrección de ruta estática para evitar el error CS0012
     if (Session["UsuarioActivo"] == null)
     {
         Response.Redirect("~/Login/Index");
@@ -17,12 +16,10 @@
     <title>Portal Cliente - BITATEL</title>
 
     <script>
-        // DOMContentLoaded asegura que toda la vista exista antes de aplicar el color
         document.addEventListener("DOMContentLoaded", function () {
             if (localStorage.getItem('tema_bitatel') === 'dark') {
                 document.body.classList.add('dark-mode');
 
-                // Si el usuario entra a Configuración, mantener el botón Switch encendido visualmente
                 var switchTema = document.getElementById('chkTema');
                 if (switchTema) {
                     switchTema.checked = true;
@@ -41,7 +38,6 @@
     </script>
 
     <style>
-        /* MOTOR DE MODO OSCURO GLOBAL */
         body.dark-mode {
             background-color: #0f172a !important;
             color: #f1f5f9 !important;
@@ -95,7 +91,6 @@
                 background-color: #0f172a !important;
             }
 
-        /* ESTILOS BASE */
         body {
             margin: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -252,7 +247,6 @@
                 transition: background 0.2s ease;
             }
 
-                /* CORRECCIÓN DE TAMAÑO DE ICONOS EN DROPDOWN */
                 .dropdown-content a svg {
                     width: 18px;
                     height: 18px;

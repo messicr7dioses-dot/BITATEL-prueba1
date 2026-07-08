@@ -68,7 +68,6 @@
         </div>
     </div>
 
-    <!-- BUSCADOR UNIVERSAL -->
     <div style="margin-bottom: 20px; max-width: 400px; position: relative;">
         <svg style="position: absolute; left: 12px; top: 12px; color: #94a3b8;" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
         <input type="text" id="txtBuscarUniversal" onkeyup="filtrarTablaUniversal()" placeholder="Buscar sede, departamento u observación..." style="width: 100%; padding: 10px 10px 10px 40px; border: 1px solid #cbd5e1; border-radius: 5px; font-family: inherit;">
@@ -115,12 +114,10 @@
                             </td>
 
                             <td style="padding: 15px; text-align: center; gap: 10px; display: flex; justify-content: center;">
-                                <!-- Botón Editar -->
                                 <button onclick="abrirEdicion(@s.IdSede, '@s.NombreSede.Replace("'","\\'")', '@s.Departamento.Replace("'","\\'")', '@s.Observacion.Replace("'","\\'")')" style="background: #e0e7ff; color: #3b82f6; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; transition: background 0.3s;" onmouseover="this.style.backgroundColor='#dbeafe'" onmouseout="this.style.backgroundColor='#e0e7ff'">
                                     Modificar
                                 </button>
 
-                                <!-- Botón Eliminar -->
                                 <button onclick="eliminarSede(@s.IdSede)" style="background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; transition: background 0.3s;" onmouseover="this.style.backgroundColor='#fca5a5'" onmouseout="this.style.backgroundColor='#fee2e2'">
                                     Borrar
                                 </button>
@@ -133,7 +130,6 @@
     </div>
 </div>
 
-<!-- MODAL CREAR / EDITAR SEDE -->
 <div id="modalSede" class="modal-overlay">
     <div class="modal-box">
         <h3 id="modalTitle" style="margin-top:0; color:#1e40af; border-bottom:1px solid #eee; padding-bottom:10px;">Gestión de Sede</h3>
@@ -161,7 +157,6 @@
 </div>
 
 <script>
-    // BUSCADOR UNIVERSAL
     function filtrarTablaUniversal() {
         var texto = document.getElementById("txtBuscarUniversal").value.toLowerCase();
         document.querySelectorAll(".item-row").forEach(fila => {
@@ -169,7 +164,6 @@
         });
     }
 
-    // MODAL DE EDICIÓN
     function abrirEdicion(id, nombre, dep, obs) {
         document.getElementById('hdnIdSede').value = id;
         document.getElementById('txtNomSede').value = nombre;
@@ -179,7 +173,6 @@
         document.getElementById('modalSede').style.display = 'flex';
     }
 
-    // GUARDAR (CREAR O EDITAR)
     function guardarCambios() {
         var idCli = @ViewBag.IdCliente;
         var idSede = parseInt(document.getElementById('hdnIdSede').value);
@@ -202,7 +195,6 @@
         });
     }
 
-    // ELIMINAR CON VALIDACIÓN DE INTEGRIDAD
     function eliminarSede(idSede) {
         if(confirm("¿Está seguro de eliminar esta Sede? Esta acción es irreversible.")) {
             fetch('/Admin/EliminarSede', {

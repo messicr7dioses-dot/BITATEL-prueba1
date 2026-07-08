@@ -331,7 +331,7 @@
 </div>
 
 <script>
-    // CONTROL DE PANELES FLOTANTES
+    
     var panelFiltros = document.getElementById('panelFiltros');
     if (panelFiltros) panelFiltros.addEventListener('click', e => e.stopPropagation());
 
@@ -349,7 +349,7 @@
         }
     }
 
-    // SELECCIÓN Y BOTONES
+    
     function seleccionarTodos(chkPrincipal) {
         document.querySelectorAll('.item-row').forEach(fila => {
             if (fila.style.display !== "none") {
@@ -370,9 +370,6 @@
 
     function obtenerIds() { return Array.from(document.querySelectorAll('.chk-item:checked')).map(chk => parseInt(chk.value)); }
 
-    // ===============================================
-    // LÓGICA TRASLADO INTERNO
-    // ===============================================
     function abrirModalTraslado() {
         fetch('/Cliente/ObtenerMisUbicaciones')
             .then(res => res.json())
@@ -395,9 +392,6 @@
         });
     }
 
-    // ===============================================
-    // LÓGICA DE AVERÍAS
-    // ===============================================
     function abrirModalAveria() {
         document.getElementById('txtMotivoFalla').value = '';
         document.getElementById('modalAveria').style.display = 'flex';
@@ -421,9 +415,7 @@
         }
     }
 
-    // ===============================================
-    // FILTROS AVANZADOS Y BUSCADOR (Súper Rápido)
-    // ===============================================
+   
     function obtenerValoresChecked(clase) { return Array.from(document.querySelectorAll(clase + ':checked')).map(chk => chk.value); }
 
     function aplicarFiltros() {
@@ -461,7 +453,6 @@
         aplicarFiltros();
     }
 
-    // EXPORTAR A CSV (EXCEL)
     function exportarCSV() {
         var filasVisible = Array.from(document.querySelectorAll(".item-row")).filter(f => f.style.display !== "none");
         if (filasVisible.length === 0) { alert("No hay datos para exportar con los filtros actuales."); return; }

@@ -234,7 +234,6 @@
 
             doc.text(`Cliente Destinatario: ${empresa}`, 14, 45);
 
-            // MAGIA: El texto largo se divide dinámicamente
             const lineasSede = doc.splitTextToSize(`Sede Física Asignada: ${sede}`, 180);
             doc.text(lineasSede, 14, 52);
 

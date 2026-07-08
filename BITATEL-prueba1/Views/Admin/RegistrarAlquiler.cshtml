@@ -224,7 +224,7 @@
     }
 
     // =========================================================================================
-    // INSERCIÓN DE DATOS EN EL CARRITO CENTRAL
+    // INSERCIÓN DE DATOS 
     // =========================================================================================
     function agregarAlCarrito() {
         const idActivo = $("#cboActivo").val();
@@ -261,7 +261,7 @@
     }
 
     // =========================================================================================
-    // VISUALIZACIÓN COMPACTA Y AGRUPADA (EVITA EL DESPLAZAMIENTO INFINITO)
+    // VISUALIZACIÓN COMPACTA Y AGRUPADA
     // =========================================================================================
     function actualizarTablaVisual() {
         const tbody = document.querySelector("#tablaCarrito tbody");
@@ -273,7 +273,6 @@
         if (carritoActivos.length === 0) { vacio.style.display = "block"; lblTotal.innerText = "$ 0.00"; return; }
         vacio.style.display = "none";
 
-        // Agrupación en caliente por Categoría y Marca
         let resumen = {};
         carritoActivos.forEach(item => {
             totalGeneral += item.costoPactado;
@@ -305,7 +304,7 @@
     }
 
     // =========================================================================================
-    // REQUERIMIENTO ESPECIAL: EXPORTACIÓN COMPLETA A PDF CLIENT-SIDE
+    // REQUERIMIENTO ESPECIAL: EXPORTACIÓN COMPLETA A PDF
     // =========================================================================================
     function descargarDetallePDF() {
         if (carritoActivos.length === 0) { alert("Agregue componentes para poder exportar."); return; }
@@ -313,31 +312,26 @@
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
 
-        // Encabezado Corporativo
         doc.setFont("helvetica", "bold"); doc.setFontSize(18); doc.text("BITATEL COMPONENTES S.A.C.", 14, 20);
         doc.setFontSize(11); doc.setFont("helvetica", "normal"); doc.text("SISTEMA DE GESTIÓN LOGÍSTICA - DETALLE DE DESPACHO MASIVO", 14, 26);
         doc.line(14, 29, 196, 29);
 
-        // Variables maestras de tiempo y destino
         const cliente = $("#cboCliente option:selected").text() || "No definido";
         const sede = $("#cboUbicacion option:selected").text() || "No definido";
         const fInicio = $("#txtFechaIngreso").val() || "No seleccionada";
         const fFin = $("#txtFechaVencimiento").val() || "No seleccionada";
 
-        // SOLUCIÓN: Truncar textos demasiado largos a 55 caracteres máximos
         const clienteCorto = cliente.length > 55 ? cliente.substring(0, 52) + "..." : cliente;
         const sedeCorta = sede.length > 55 ? sede.substring(0, 52) + "..." : sede;
 
         doc.setFont("helvetica", "bold"); doc.text("Resumen Contractual de Operación:", 14, 38);
         doc.setFont("helvetica", "normal");
 
-        // SOLUCIÓN: Se imprime el texto corto y las fechas se movieron al punto X: 135
         doc.text(`Cliente Destinatario: ${clienteCorto}`, 14, 45);
         doc.text(`Sede Física Asignada: ${sedeCorta}`, 14, 52);
         doc.text(`Fecha Inicio Alquiler: ${fInicio}`, 135, 45);
         doc.text(`Fecha Vencimiento (Fin): ${fFin}`, 135, 52);
 
-        // Construcción de la grilla detallada
         const columnas = ["ID Base", "Componente Específico / Registro", "Categoría", "Marca", "Costo Mensual", "Mora Diaria"];
         const filas = [];
         let acumulado = 0;

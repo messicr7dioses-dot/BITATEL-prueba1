@@ -5,7 +5,6 @@
 }
 
 <style>
-    /* ESTILOS DEL MODAL DE RESUMEN */
     .modal-overlay {
         display: none;
         position: fixed;
@@ -49,7 +48,6 @@
         font-weight: bold;
     }
 
-    /* ESTILOS DEL BOTÓN PDF */
     .btn-pdf {
         background: #fff1f2;
         color: #e11d48;
@@ -70,7 +68,6 @@
             color: #be123c;
         }
 
-    /* ESTILOS DE LA PANTALLA DE ESPERA (LOADING) - CORREGIDO PARA ASP.NET RAZOR */
     #loading-overlay {
         display: none;
         position: fixed;
@@ -94,7 +91,6 @@
         animation: spin 1s linear infinite;
         margin-bottom: 15px;
     }
-    /* Se utiliza doble arroba para escapar el código en ASP.NET */
     @@keyframes spin {
         0% {
             transform: rotate(0deg);
@@ -277,18 +273,15 @@
             doc.setFont("helvetica", "bold"); doc.text("Resumen Contractual de Operación:", 14, 38);
             doc.setFont("helvetica", "normal");
 
-            // 1. Imprime el cliente en la primera línea
             doc.text(`Cliente Destinatario: ${empresa}`, 14, 45);
 
-            // 2. MAGIA: Si la sede es larguísima, splitTextToSize la rompe en varios párrafos (Límite: 180px)
             const lineasSede = doc.splitTextToSize(`Sede Física Asignada: ${sede}`, 180);
             doc.text(lineasSede, 14, 52);
 
-            // 3. Calculamos la posición de las fechas multiplicando la cantidad de líneas de la sede
             let yFechas = 52 + (lineasSede.length * 7);
 
             doc.text(`Fecha Inicio Alquiler: ${fInicio}`, 14, yFechas);
-            doc.text(`Fecha Vencimiento (Fin): ${fVence}`, 100, yFechas); // La segunda fecha va al lado derecho
+            doc.text(`Fecha Vencimiento (Fin): ${fVence}`, 100, yFechas); 
 
             const columnas = ["ID Base", "Componente Específico", "Categoría", "Marca", "Costo Mensual", "Mora Diaria"];
             const filas = [];
@@ -300,7 +293,6 @@
             });
             filas.push(["", "TOTAL VALORIZADO MENSUAL DEL LOTE:", "", "", `$ ${acumulado.toFixed(2)}`, ""]);
 
-            // 4. La tabla empieza debajo de la posición de las fechas
             doc.autoTable({
                 head: [columnas], body: filas, startY: yFechas + 10, theme: 'striped',
                 headStyles: { fillColor: [217, 119, 6] }, styles: { fontSize: 8.5 }

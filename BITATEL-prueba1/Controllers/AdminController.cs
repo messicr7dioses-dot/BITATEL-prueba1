@@ -941,53 +941,55 @@ namespace BITATEL_prueba1.Controllers
         // =======================================================
         // MÓDULO DE GESTIÓN DE USUARIOS
         // =======================================================
+        // CLASE MODELO ACTUALIZADA
         public class UsuarioItem
         {
-            public long IdUsuario { get; set; }
+            public int IdUsuario { get; set; }
             public string NombreCompleto { get; set; }
             public string Username { get; set; }
             public string Rol { get; set; }
             public string Empresa { get; set; }
             public bool IsActivo { get; set; }
+            public string FechaRegistro { get; set; } 
         }
 
+        [HttpGet]
         public ActionResult Usuarios()
         {
             if (!EsAdmin()) return RedirectToAction("Index", "Login");
 
             var lista = new List<UsuarioItem>();
-            ConexionBD obj = new ConexionBD();
-
-            using (var con = obj.ObtenerConexion())
+            using (var con = new ConexionBD().ObtenerConexion())
             {
                 con.Open();
-                string sql = @"
-                    SELECT 
-                        u.id_usuario, 
-                        u.nombre_completo, 
-                        u.username, 
-                        r.nombre_rol, 
-                        ISNULL(c.nombre_empresa, 'Personal Interno BITATEL') AS empresa,
-                        u.activo
+                
+                string query = @"
+                    SELECT u.id_usuario, u.nombre_completo, u.username, r.nombre_rol, 
+                           ISNULL(c.nombre_empresa, 'Personal Interno') as empresa, u.activo,
+                           ISNULL(u.fecha_registro, GETDATE()) as fecha_registro
                     FROM Usuarios u
-                    INNER JOIN Roles r ON u.id_rol = r.id_rol
+                    JOIN Roles r ON u.id_rol = r.id_rol
                     LEFT JOIN Clientes c ON u.id_cliente = c.id_cliente
-                    ORDER BY u.id_rol ASC, u.nombre_completo ASC";
+                    ORDER BY u.id_usuario DESC";
 
-                using (var cmd = new SqlCommand(sql, con))
-                using (var reader = cmd.ExecuteReader())
+                using (var cmd = new SqlCommand(query, con))
                 {
-                    while (reader.Read())
+                    using (var reader = cmd.ExecuteReader())
                     {
-                        lista.Add(new UsuarioItem
+                        while (reader.Read())
                         {
-                            IdUsuario = Convert.ToInt64(reader["id_usuario"]),
-                            NombreCompleto = reader["nombre_completo"].ToString(),
-                            Username = reader["username"].ToString(),
-                            Rol = reader["nombre_rol"].ToString(),
-                            Empresa = reader["empresa"].ToString(),
-                            IsActivo = Convert.ToBoolean(reader["activo"])
-                        });
+                            lista.Add(new UsuarioItem
+                            {
+                                IdUsuario = Convert.ToInt32(reader["id_usuario"]),
+                                NombreCompleto = reader["nombre_completo"].ToString(),
+                                Username = reader["username"].ToString(),
+                                Rol = reader["nombre_rol"].ToString(),
+                                Empresa = reader["empresa"].ToString(),
+                                IsActivo = Convert.ToBoolean(reader["activo"]),
+                                // Transformamos la fecha a texto para la vista
+                                FechaRegistro = Convert.ToDateTime(reader["fecha_registro"]).ToString("dd/MM/yyyy")
+                            });
+                        }
                     }
                 }
             }
@@ -1699,7 +1701,7 @@ namespace BITATEL_prueba1.Controllers
             }
             catch (Exception ex)
             {
-                // Si la BD falla, devolvemos el error al Frontend en vez de crashear Visual Studio
+              
                 return Json(new { error = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
@@ -1717,7 +1719,7 @@ namespace BITATEL_prueba1.Controllers
         [HttpPost]
         public JsonResult ActualizarPassword(string actual, string nueva)
         {
-            // Solución al IDE0019: Uso de "Pattern Matching" recomendado por Visual Studio
+      
             if (!(Session["UsuarioActivo"] is Usuario user))
             {
                 return Json(new { success = false, message = "Sesión expirada. Inicie sesión nuevamente." });
@@ -1729,7 +1731,7 @@ namespace BITATEL_prueba1.Controllers
                 {
                     con.Open();
 
-                    // 1. Verificamos que la contraseña actual ingresada sea correcta (Cotejamos contra SQL)
+              
                     string sqlCheck = "SELECT COUNT(*) FROM Usuarios WHERE id_usuario = @id AND password_hash = @actual";
                     using (var cmdCheck = new SqlCommand(sqlCheck, con))
                     {
@@ -1743,7 +1745,6 @@ namespace BITATEL_prueba1.Controllers
                         }
                     }
 
-                    // 2. Si es correcta, actualizamos a la nueva contraseña
                     string sqlUpdate = "UPDATE Usuarios SET password_hash = @nueva WHERE id_usuario = @id";
                     using (var cmdUpdate = new SqlCommand(sqlUpdate, con))
                     {
@@ -1752,8 +1753,7 @@ namespace BITATEL_prueba1.Controllers
                         cmdUpdate.ExecuteNonQuery();
                     }
 
-                    // Nota: Se eliminó el re-guardado en la variable "user.Password" para evitar el error CS1061.
-                    // Ya está modificado en la Base de Datos, que es lo que realmente importa.
+                   
                 }
 
                 return Json(new { success = true, message = "Contraseña actualizada correctamente." });
@@ -1773,7 +1773,7 @@ namespace BITATEL_prueba1.Controllers
             if (!EsAdmin()) return new HttpStatusCodeResult(401, "No autorizado");
             try
             {
-                // 1. Creamos una carpeta temporal
+                
                 string tempDir = @"C:\Backups_BITATEL\Temp";
                 if (!System.IO.Directory.Exists(tempDir))
                     System.IO.Directory.CreateDirectory(tempDir);
@@ -1786,7 +1786,7 @@ namespace BITATEL_prueba1.Controllers
                     con.Open();
                     string dbName = con.Database;
 
-                    // 2. Le pedimos a SQL que guarde el backup en esa ruta
+                 
                     string sql = $"BACKUP DATABASE [{dbName}] TO DISK = '{fullPath}' WITH FORMAT, MEDIANAME = 'BITATEL_SQLServer', NAME = 'Full Backup';";
                     using (var cmd = new SqlCommand(sql, con))
                     {
@@ -1794,13 +1794,13 @@ namespace BITATEL_prueba1.Controllers
                     }
                 }
 
-                // 3. Leemos el archivo físico y lo convertimos a Bytes
+           
                 byte[] fileBytes = System.IO.File.ReadAllBytes(fullPath);
 
-                // 4. Borramos el archivo temporal para no llenar el disco C de la universidad
+            
                 System.IO.File.Delete(fullPath);
 
-                // 5. Enviamos el archivo directamente al navegador web para que el usuario lo descargue
+                
                 return File(fileBytes, "application/octet-stream", fileName);
             }
             catch (Exception ex)
@@ -1809,7 +1809,31 @@ namespace BITATEL_prueba1.Controllers
             }
         }
 
-      
+        [HttpPost]
+        public JsonResult EliminarUsuario(int id)
+        {
+            if (!EsAdmin()) return Json(new { success = false, message = "No autorizado." });
+
+            try
+            {
+                using (var con = new ConexionBD().ObtenerConexion())
+                {
+                    con.Open();
+                    var cmd = new SqlCommand("DELETE FROM Usuarios WHERE id_usuario = @id", con);
+                    cmd.Parameters.AddWithValue("@id", id);
+                    cmd.ExecuteNonQuery();
+                }
+                return Json(new { success = true, message = "Usuario eliminado definitivamente del sistema." });
+            }
+            catch (System.Data.SqlClient.SqlException ex)
+            {
+                if (ex.Number == 547)
+                {
+                    return Json(new { success = false, message = "⛔ SEGURIDAD ERP: No se puede eliminar este usuario porque tiene historial de movimientos, contratos o auditorías registradas. Se recomienda BLOQUEAR su acceso en lugar de eliminarlo." });
+                }
+                return Json(new { success = false, message = "Error interno: " + ex.Message });
+            }
+        }
 
     }
 }

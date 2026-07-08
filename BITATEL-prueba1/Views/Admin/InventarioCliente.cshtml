@@ -8,7 +8,6 @@
         .GroupBy(x => x.Sede)
         .ToDictionary(g => g.Key, g => g.Select(x => x.Ubicacion).Distinct().OrderBy(x => x).ToList());
 
-    // NUEVO FILTRO: Extracción de las categorías (Componente en el modelo) únicas
     var categoriasUnicas = Model.Select(x => x.Componente).Distinct().OrderBy(x => x).ToList();
     var marcasUnicas = Model.Select(x => x.Marca).Distinct().OrderBy(x => x).ToList();
     var contratosUnicos = Model.Select(x => x.Contrato).Distinct().OrderBy(x => x).ToList();
@@ -346,7 +345,7 @@
 
     function aplicarFiltros() {
         var ubis = obtenerValoresChecked('.flt-ubicacion');
-        var categorias = obtenerValoresChecked('.flt-categoria'); // OBTENCIÓN CATEGORÍA
+        var categorias = obtenerValoresChecked('.flt-categoria'); 
         var marcas = obtenerValoresChecked('.flt-marca');
         var contratos = obtenerValoresChecked('.flt-contrato');
         var moras = obtenerValoresChecked('.flt-mora');
@@ -354,20 +353,19 @@
 
         document.querySelectorAll(".item-row").forEach(function(fila) {
             var fUbi = fila.querySelector(".col-ubicacion").textContent.toLowerCase();
-            var fCategoria = fila.querySelector(".col-categoria").textContent.toLowerCase(); // LECTURA CATEGORÍA
+            var fCategoria = fila.querySelector(".col-categoria").textContent.toLowerCase();
             var fMarca = fila.querySelector(".col-marca").textContent.toLowerCase();
             var fContrato = fila.querySelector(".col-contrato").textContent.toLowerCase();
             var fMora = fila.querySelector(".col-mora").textContent.toLowerCase();
             var fEstado = fila.querySelector(".col-estado") ? fila.querySelector(".col-estado").textContent.toLowerCase() : "";
 
             var pUbi = ubis.length === 0 || ubis.some(u => fUbi.includes(u));
-            var pCategoria = categorias.length === 0 || categorias.some(c => fCategoria.includes(c)); // FILTRO CATEGORÍA
+            var pCategoria = categorias.length === 0 || categorias.some(c => fCategoria.includes(c)); 
             var pMarca = marcas.length === 0 || marcas.some(m => fMarca.includes(m));
             var pCont = contratos.length === 0 || contratos.some(c => fContrato.includes(c));
             var pMora = moras.length === 0 || moras.some(m => fMora.includes(m));
             var pEstado = estados.length === 0 || estados.some(e => fEstado.includes(e));
 
-            // CONDICIONAL ACTUALIZADO
             if (pUbi && pCategoria && pMarca && pCont && pMora && pEstado) {
                 fila.style.display = "";
             } else {
@@ -518,7 +516,7 @@
             let estado = cols[8].innerText.replace('⚠️', '').trim();
             let fDesp = cols[9].innerText.trim();
             let fDev = cols[10].innerText.trim();
-            let costo = cols[11].innerText.replace(/\n/g, ' / ').trim(); // Limpiamos el salto de línea del HTML
+            let costo = cols[11].innerText.replace(/\n/g, ' / ').trim(); 
             let estadoMora = cols[12].innerText.replace('⚠️', '').replace('✅', '').trim();
             let moraAcum = cols[13].innerText.trim();
             let contrato = cols[14].innerText.trim();

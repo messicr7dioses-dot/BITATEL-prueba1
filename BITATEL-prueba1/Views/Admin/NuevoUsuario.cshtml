@@ -57,27 +57,23 @@
         var cajaEmpresa = document.getElementById("cajaEmpresa");
         var cboCliente = document.getElementById("cboCliente");
 
-        // Si el Rol es 2 (Cliente), mostramos la caja y volvemos el combo obligatorio
         if (rolSeleccionado === "2") {
             cajaEmpresa.style.display = "block";
             cboCliente.setAttribute("required", "required");
         } else {
-            // Si el Rol es 1 (Admin), ocultamos la caja y quitamos la obligación
             cajaEmpresa.style.display = "none";
             cboCliente.removeAttribute("required");
-            cboCliente.value = ""; // Limpiamos selección por si acaso
+            cboCliente.value = ""; 
         }
     }
 
     function validarConfirmacionAdmin() {
         var rolSeleccionado = document.getElementById("cboRol").value;
 
-        // Si el rol es 1, detenemos el envío del formulario para lanzar la advertencia
         if (rolSeleccionado === "1") {
             return confirm("⚠️ ATENCIÓN DE SEGURIDAD\n\nEstás a punto de otorgar privilegios de ADMINISTRADOR. Este usuario tendrá control total sobre el inventario, facturación y contratos del sistema.\n\n¿Estás completamente seguro de autorizar esta creación?");
         }
 
-        // Si es cliente (rol 2), pasa directo sin preguntar
         return true;
     }
 </script>

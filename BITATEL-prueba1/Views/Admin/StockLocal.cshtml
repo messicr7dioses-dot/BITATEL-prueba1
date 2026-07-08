@@ -139,7 +139,7 @@
             } else {
                 fila.style.display = "none";
                 var chk = fila.querySelector(".chk-item");
-                if (chk) chk.checked = false; // Desmarcar si se oculta
+                if (chk) chk.checked = false; 
             }
         });
         evaluarSeleccion();
@@ -152,9 +152,7 @@
         aplicarFiltros();
     }
 
-    // ==========================================
-    // LÓGICA DE PRE-CARGA DE LOTE
-    // ==========================================
+   
     function seleccionarTodos(chkPrincipal) {
         document.querySelectorAll('.item-row').forEach(fila => {
             if (fila.style.display !== "none") {
@@ -173,10 +171,8 @@
     function enviarAlDespacho() {
         var seleccionados = Array.from(document.querySelectorAll('.chk-item:checked')).map(c => c.value);
         if (seleccionados.length === 0) {
-            // Flujo normal, no seleccionó nada
             window.location.href = '@Url.Action("RegistrarAlquiler", "Admin")';
         } else {
-            // Flujo dinámico: Empaquetar IDs en la URL
             var url = '@Url.Action("RegistrarAlquiler", "Admin")?prelote=' + seleccionados.join(',');
             window.location.href = url;
         }

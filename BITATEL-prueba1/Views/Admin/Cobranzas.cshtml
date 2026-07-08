@@ -183,7 +183,6 @@
 
         document.getElementById('modalDeuda').style.display = 'flex';
 
-        // Llama a la función que armamos en AdminController para desglosar por contratos
         fetch('@Url.Action("ObtenerDetalleDeudaCliente", "Admin")?idCliente=' + idCliente)
             .then(res => res.json())
             .then(data => {

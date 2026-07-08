@@ -211,7 +211,7 @@ namespace BITATEL_prueba1.Controllers
                                 if (res != DBNull.Value && res != null) idActual = Convert.ToInt32(res);
                             }
 
-                            // Cambiamos el estado a 3 (Averiado/Dañado) para que el Admin lo atienda
+                   
                             new SqlCommand($"UPDATE Activos SET id_estado = 3 WHERE id_activo = {id}", con, trans).ExecuteNonQuery();
 
                             string observacionSegura = motivo.Replace("'", "''");
@@ -388,7 +388,7 @@ namespace BITATEL_prueba1.Controllers
             using (var con = new ConexionBD().ObtenerConexion())
             {
                 con.Open();
-                // Validamos que la sede le pertenece a ESTE cliente
+                
                 using (var cmd = new SqlCommand("SELECT nombre_sede FROM Sedes WHERE id_sede = @id AND id_cliente = @idCli", con))
                 {
                     cmd.Parameters.AddWithValue("@id", id.Value);
@@ -560,7 +560,6 @@ namespace BITATEL_prueba1.Controllers
                 {
                     con.Open();
 
-                    // 1. Extraemos el ID del Cliente directamente de la tabla Usuarios (100% seguro y sin depender de otras funciones)
                     using (var cmdCli = new SqlCommand("SELECT id_cliente FROM Usuarios WHERE id_usuario = @idUsu", con))
                     {
                         cmdCli.Parameters.AddWithValue("@idUsu", user.IdUsuario);
@@ -571,14 +570,12 @@ namespace BITATEL_prueba1.Controllers
 
                     if (idClienteSeguro == 0) return Json(new { error = "Usuario no tiene un cliente asignado." }, JsonRequestBehavior.AllowGet);
 
-                    // 2. Extraemos el nombre de la empresa para dibujarlo en el PDF
                     using (var cmdEmp = new SqlCommand("SELECT nombre_empresa FROM Clientes WHERE id_cliente = @id", con))
                     {
                         cmdEmp.Parameters.AddWithValue("@id", idClienteSeguro);
                         nombreEmpresa = cmdEmp.ExecuteScalar()?.ToString() ?? "Cliente BITATEL";
                     }
 
-                    // 3. Consulta de los activos
                     string query = @"
                         SELECT a.id_activo, a.etiqueta_activo, a.modelo, c.nombre_categoria, a.marca, 
                                r.costo_pactado_usd, r.multa_diaria_usd, 
@@ -637,7 +634,6 @@ namespace BITATEL_prueba1.Controllers
         [HttpPost]
         public JsonResult ActualizarPassword(string actual, string nueva)
         {
-            // Solución al IDE0019: Uso de "Pattern Matching" recomendado por Visual Studio
             if (!(Session["UsuarioActivo"] is Usuario user))
             {
                 return Json(new { success = false, message = "Sesión expirada. Inicie sesión nuevamente." });
@@ -649,7 +645,6 @@ namespace BITATEL_prueba1.Controllers
                 {
                     con.Open();
 
-                    // 1. Verificamos que la contraseña actual ingresada sea correcta (Cotejamos contra SQL)
                     string sqlCheck = "SELECT COUNT(*) FROM Usuarios WHERE id_usuario = @id AND password_hash = @actual";
                     using (var cmdCheck = new SqlCommand(sqlCheck, con))
                     {
@@ -663,7 +658,6 @@ namespace BITATEL_prueba1.Controllers
                         }
                     }
 
-                    // 2. Si es correcta, actualizamos a la nueva contraseña
                     string sqlUpdate = "UPDATE Usuarios SET password_hash = @nueva WHERE id_usuario = @id";
                     using (var cmdUpdate = new SqlCommand(sqlUpdate, con))
                     {
@@ -672,8 +666,7 @@ namespace BITATEL_prueba1.Controllers
                         cmdUpdate.ExecuteNonQuery();
                     }
 
-                    // Nota: Se eliminó el re-guardado en la variable "user.Password" para evitar el error CS1061.
-                    // Ya está modificado en la Base de Datos, que es lo que realmente importa.
+                
                 }
 
                 return Json(new { success = true, message = "Contraseña actualizada correctamente." });
