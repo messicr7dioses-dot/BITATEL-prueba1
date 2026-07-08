@@ -177,7 +177,7 @@
     <Content Include="Views\Shared\_LayoutCliente.cshtml" />
     <Content Include="Views\Cliente\MisActivos.cshtml" />
     <Content Include="Views\Cliente\Configuracion.cshtml" />
-    <Content Include="Views\Cliente\Facturacion.cshtml" />
+    <Content Include="Views\Cliente\Cobranzas.cshtml" />
     <Content Include="Views\Cliente\Contratos.cshtml" />
     <Content Include="Views\Cliente\Ubicaciones.cshtml" />
     <Content Include="Views\Shared\_LayoutAdmin.cshtml" />

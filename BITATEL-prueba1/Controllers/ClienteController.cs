@@ -454,7 +454,7 @@ namespace BITATEL_prueba1.Controllers
         }
 
         // =======================================================
-        // 6. DEUDAS Y PAGOS (RENOVACIÓN DE CONTRATO)
+        // 6. COBRANZAS Y PAGOS 
         // =======================================================
         public class DeudaLoteItem
         {
@@ -465,7 +465,8 @@ namespace BITATEL_prueba1.Controllers
             public string FechaExactaBD { get; set; }
         }
 
-        public ActionResult Deudas()
+        [HttpGet]
+        public ActionResult Cobranzas()
         {
             int idCliente = ObtenerIdCliente();
             if (idCliente == 0) return RedirectToAction("Index", "Login");
@@ -477,11 +478,11 @@ namespace BITATEL_prueba1.Controllers
                 string sql = @"
                     SELECT 
                         CAST(r.fecha_ingreso AS DATE) AS fecha_despacho,
-                        COUNT(r.id_registro) AS equipos_mora,
-                        SUM(DATEDIFF(day, r.fecha_vencimiento, GETDATE()) * ISNULL(r.multa_diaria_usd, 1.00)) AS total_mora
+                        SUM(CASE WHEN r.fecha_vencimiento < GETDATE() THEN 1 ELSE 0 END) AS equipos_mora,
+                        SUM(CASE WHEN r.fecha_vencimiento < GETDATE() THEN DATEDIFF(day, r.fecha_vencimiento, GETDATE()) * ISNULL(r.multa_diaria_usd, 1.00) ELSE 0 END) AS total_mora
                     FROM Registro_Alquiler r
                     INNER JOIN Activos a ON r.id_activo_actual = a.id_activo
-                    WHERE r.id_cliente = @id AND a.id_estado = 2 AND r.fecha_vencimiento < GETDATE()
+                    WHERE r.id_cliente = @id AND a.id_estado = 2
                     GROUP BY CAST(r.fecha_ingreso AS DATE)
                     ORDER BY fecha_despacho DESC";
 
@@ -508,41 +509,6 @@ namespace BITATEL_prueba1.Controllers
             return View(lista);
         }
 
-        [HttpPost]
-        public JsonResult PagarDeuda(string fechaDespacho)
-        {
-            int idCliente = ObtenerIdCliente();
-            if (idCliente == 0) return Json(new { success = false });
-
-            try
-            {
-                using (var con = new ConexionBD().ObtenerConexion())
-                {
-                    con.Open();
-                    string sql = @"
-                        UPDATE r
-                        SET r.fecha_vencimiento = DATEADD(month, 1, GETDATE())
-                        FROM Registro_Alquiler r
-                        INNER JOIN Activos a ON r.id_activo_actual = a.id_activo
-                        WHERE r.id_cliente = @id 
-                          AND CAST(r.fecha_ingreso AS DATE) = @fecha 
-                          AND r.fecha_vencimiento < GETDATE()
-                          AND a.id_estado = 2";
-
-                    using (var cmd = new SqlCommand(sql, con))
-                    {
-                        cmd.Parameters.AddWithValue("@id", idCliente);
-                        cmd.Parameters.AddWithValue("@fecha", fechaDespacho);
-                        cmd.ExecuteNonQuery();
-                    }
-                }
-                return Json(new { success = true });
-            }
-            catch (Exception ex) { return Json(new { success = false, message = ex.Message }); }
-        }
-
-     
-
         [HttpGet]
         public JsonResult ObtenerDetallesPorContratoCliente(string fechaDespacho)
         {
@@ -550,7 +516,6 @@ namespace BITATEL_prueba1.Controllers
             {
                 var lista = new List<object>();
                 Usuario user = (Usuario)Session["UsuarioActivo"];
-
                 if (user == null) return Json(new { error = "Sesión expirada" }, JsonRequestBehavior.AllowGet);
 
                 int idClienteSeguro = 0;
@@ -559,13 +524,11 @@ namespace BITATEL_prueba1.Controllers
                 using (var con = new ConexionBD().ObtenerConexion())
                 {
                     con.Open();
-
                     using (var cmdCli = new SqlCommand("SELECT id_cliente FROM Usuarios WHERE id_usuario = @idUsu", con))
                     {
                         cmdCli.Parameters.AddWithValue("@idUsu", user.IdUsuario);
                         var resCli = cmdCli.ExecuteScalar();
-                        if (resCli != null && resCli != DBNull.Value)
-                            idClienteSeguro = Convert.ToInt32(resCli);
+                        if (resCli != null && resCli != DBNull.Value) idClienteSeguro = Convert.ToInt32(resCli);
                     }
 
                     if (idClienteSeguro == 0) return Json(new { error = "Usuario no tiene un cliente asignado." }, JsonRequestBehavior.AllowGet);
@@ -587,7 +550,7 @@ namespace BITATEL_prueba1.Controllers
                         LEFT JOIN Ubicaciones_Internas ui ON a.id_ubicacion = ui.id_ubicacion
                         LEFT JOIN Sedes u ON ui.id_sede = u.id_sede
                         WHERE r.id_cliente = @idCli 
-                        AND CAST(r.fecha_ingreso AS DATE) = CONVERT(DATE, @fecha, 103)";
+                        AND CAST(r.fecha_ingreso AS DATE) = CAST(@fecha AS DATE)";
 
                     using (var cmd = new SqlCommand(query, con))
                     {
@@ -621,8 +584,48 @@ namespace BITATEL_prueba1.Controllers
                 return Json(new { error = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
+
+        [HttpPost]
+        public JsonResult PagarDeuda(string fechaDespacho)
+        {
+            int idCliente = ObtenerIdCliente();
+            if (idCliente == 0) return Json(new { success = false, message = "Sesión expirada." });
+
+            try
+            {
+                using (var con = new ConexionBD().ObtenerConexion())
+                {
+                    con.Open();
+                    // ESTA ES LA MAGIA AUTOMÁTICA: 
+                    // Avanzamos 1 mes la fecha de vencimiento a todos los activos de este lote en mora
+                    string sql = @"
+                        UPDATE r
+                        SET r.fecha_vencimiento = DATEADD(month, 1, GETDATE())
+                        FROM Registro_Alquiler r
+                        INNER JOIN Activos a ON r.id_activo_actual = a.id_activo
+                        WHERE r.id_cliente = @id 
+                          AND CAST(r.fecha_ingreso AS DATE) = CAST(@fecha AS DATE) 
+                          AND r.fecha_vencimiento < GETDATE()
+                          AND a.id_estado = 2";
+
+                    using (var cmd = new SqlCommand(sql, con))
+                    {
+                        cmd.Parameters.AddWithValue("@id", idCliente);
+                        // El formato yyyy-MM-dd se inserta perfecto en SQL Server
+                        cmd.Parameters.AddWithValue("@fecha", fechaDespacho);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
         // =======================================================
-        // MÓDULO DE CONFIGURACIÓN Y SEGURIDAD
+        // 7. CONFIGURACION
         // =======================================================
 
         [HttpGet]
